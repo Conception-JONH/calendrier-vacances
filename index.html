@@ -6,1058 +6,426 @@
 <title>Choix de vacances — Moulures JONH</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,500;0,9..40,700;1,9..40,400&family=Fraunces:opsz,wght@9..144,600;9..144,800&display=swap');
-
-  :root {
-    --bg: #f5f0eb;
-    --surface: #ffffff;
-    --text: #2c2421;
-    --text-muted: #8a7e78;
-    --accent: #2d6a4f;
-    --accent-light: #d8f3dc;
-    --accent-hover: #1b4332;
-    --blocked: #e07a5f;
-    --blocked-bg: #fce4de;
-    --taken: #e76f51;
-    --taken-bg: #fdd5c8;
-    --selected: #2d6a4f;
-    --selected-bg: #b7e4c7;
-    --weekend: #eae5e0;
-    --border: #e0d8d2;
-    --shadow: 0 2px 12px rgba(44,36,33,0.08);
-    --radius: 10px;
-  }
-
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-
-  body {
-    font-family: 'DM Sans', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    padding: 24px;
-    min-height: 100vh;
-  }
-
-  .app-header {
-    text-align: center;
-    margin-bottom: 32px;
-  }
-
-  .app-header h1 {
-    font-family: 'Fraunces', serif;
-    font-weight: 800;
-    font-size: 1.8rem;
-    color: var(--accent);
-    margin-bottom: 6px;
-  }
-
-  .app-header p {
-    color: var(--text-muted);
-    font-size: 0.92rem;
-  }
-
-  .app-header .emp-name {
-    font-weight: 700;
-    color: var(--accent);
-  }
-
-  /* Loading */
-  .loading {
-    text-align: center;
-    padding: 60px 20px;
-    color: var(--text-muted);
-    font-size: 1.1rem;
-  }
-
-  .loading .spinner {
-    width: 40px;
-    height: 40px;
-    border: 3px solid var(--border);
-    border-top-color: var(--accent);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-    margin: 0 auto 16px;
-  }
-
-  @keyframes spin {
-    to { transform: rotate(360deg); }
-  }
-
-  /* Légende */
-  .legend {
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-    margin-bottom: 28px;
-    flex-wrap: wrap;
-  }
-
-  .legend-item {
-    display: flex;
-    align-items: center;
-    gap: 7px;
-    font-size: 0.82rem;
-    color: var(--text-muted);
-  }
-
-  .legend-dot {
-    width: 14px;
-    height: 14px;
-    border-radius: 4px;
-    flex-shrink: 0;
-  }
-
-  .legend-dot.available { background: var(--surface); border: 1.5px solid var(--border); }
-  .legend-dot.selected { background: var(--selected-bg); border: 1.5px solid var(--selected); }
-  .legend-dot.taken { background: var(--taken-bg); border: 1.5px solid var(--taken); }
-  .legend-dot.blocked { background: var(--blocked-bg); border: 1.5px solid var(--blocked); }
-  .legend-dot.weekend { background: var(--weekend); border: 1.5px solid var(--border); }
-
-  /* Barre de sélection */
-  .selection-bar {
-    background: var(--surface);
-    border: 1.5px solid var(--border);
-    border-radius: var(--radius);
-    padding: 16px 24px;
-    margin-bottom: 28px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    box-shadow: var(--shadow);
-    flex-wrap: wrap;
-    gap: 12px;
-  }
-
-  .selection-info {
-    font-size: 0.95rem;
-  }
-
-  .selection-info strong {
-    color: var(--accent);
-    font-weight: 700;
-  }
-
-  .selection-dates {
-    font-family: 'Fraunces', serif;
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: var(--accent);
-  }
-
-  .btn-group {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-  }
-
-  .btn {
-    padding: 10px 22px;
-    border-radius: 8px;
-    border: none;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 0.9rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-
-  .btn-confirm {
-    background: var(--accent);
-    color: white;
-  }
-
-  .btn-confirm:hover:not(:disabled) {
-    background: var(--accent-hover);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(45,106,79,0.3);
-  }
-
-  .btn-confirm:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-  }
-
-  .btn-clear {
-    background: transparent;
-    color: var(--text-muted);
-    border: 1.5px solid var(--border);
-  }
-
-  .btn-clear:hover {
-    border-color: var(--text-muted);
-    color: var(--text);
-  }
-
-  .btn-done {
-    background: transparent;
-    color: var(--blocked);
-    border: 1.5px solid var(--blocked);
-  }
-
-  .btn-done:hover {
-    background: var(--blocked-bg);
-  }
-
-  /* Calendrier grid */
-  .calendar-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 20px;
-    margin-bottom: 40px;
-  }
-
-  .month-card {
-    background: var(--surface);
-    border-radius: var(--radius);
-    padding: 18px;
-    box-shadow: var(--shadow);
-    border: 1px solid var(--border);
-  }
-
-  .month-title {
-    font-family: 'Fraunces', serif;
-    font-weight: 600;
-    font-size: 1.05rem;
-    text-align: center;
-    margin-bottom: 12px;
-    color: var(--text);
-    text-transform: capitalize;
-  }
-
-  .weekday-header {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    margin-bottom: 4px;
-  }
-
-  .weekday-header span {
-    text-align: center;
-    font-size: 0.72rem;
-    font-weight: 500;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    padding: 4px 0;
-  }
-
-  .days-grid {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 3px;
-  }
-
-  .day-cell {
-    aspect-ratio: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.82rem;
-    font-weight: 500;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.15s ease;
-    position: relative;
-    user-select: none;
-  }
-
-  .day-cell:hover:not(.disabled):not(.weekend):not(.blocked):not(.taken) {
-    background: var(--accent-light);
-    color: var(--accent);
-    transform: scale(1.08);
-  }
-
-  .day-cell.empty { cursor: default; }
-
-  .day-cell.weekend {
-    background: var(--weekend);
-    color: var(--text-muted);
-    cursor: not-allowed;
-    font-weight: 400;
-  }
-
-  .day-cell.blocked {
-    background: var(--blocked-bg);
-    color: var(--blocked);
-    cursor: not-allowed;
-    font-weight: 600;
-  }
-
-  .day-cell.blocked::after {
-    content: '';
-    position: absolute;
-    width: 60%;
-    height: 1.5px;
-    background: var(--blocked);
-    opacity: 0.5;
-    transform: rotate(-45deg);
-  }
-
-  .day-cell.taken {
-    background: var(--taken-bg);
-    color: var(--taken);
-    cursor: not-allowed;
-    font-weight: 600;
-  }
-
-  .day-cell.selected {
-    background: var(--selected-bg);
-    color: var(--selected);
-    font-weight: 700;
-    box-shadow: inset 0 0 0 2px var(--selected);
-  }
-
-  .day-cell.selected-start { border-radius: 6px 2px 2px 6px; }
-  .day-cell.selected-end { border-radius: 2px 6px 6px 2px; }
-  .day-cell.selected-mid { border-radius: 2px; }
-
-  .day-cell.preview {
-    background: var(--accent-light);
-    color: var(--accent);
-    opacity: 0.7;
-  }
-
-  .day-cell.invalid-preview {
-    background: #ffeaea;
-    color: #c0392b;
-    opacity: 0.6;
-  }
-
-  .day-cell.past {
-    color: var(--border);
-    cursor: not-allowed;
-  }
-
-  /* Tooltip pour jours pris */
-  .day-cell.taken[title] {
-    cursor: help;
-  }
-
-  /* Confirmation overlay */
-  .overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(44,36,33,0.5);
-    z-index: 100;
-    align-items: center;
-    justify-content: center;
-    backdrop-filter: blur(4px);
-  }
-
-  .overlay.visible { display: flex; }
-
-  .modal {
-    background: var(--surface);
-    border-radius: 16px;
-    padding: 32px;
-    max-width: 420px;
-    width: 90%;
-    box-shadow: 0 20px 60px rgba(44,36,33,0.2);
-    text-align: center;
-  }
-
-  .modal h2 {
-    font-family: 'Fraunces', serif;
-    font-weight: 800;
-    font-size: 1.3rem;
-    color: var(--accent);
-    margin-bottom: 12px;
-  }
-
-  .modal p {
-    color: var(--text-muted);
-    margin-bottom: 24px;
-    line-height: 1.6;
-  }
-
-  .modal .dates-display {
-    font-family: 'Fraunces', serif;
-    font-size: 1.2rem;
-    font-weight: 600;
-    color: var(--text);
-    margin-bottom: 20px;
-  }
-
-  .modal-buttons {
-    display: flex;
-    gap: 12px;
-    justify-content: center;
-  }
-
-  /* Status messages */
-  .status-msg {
-    text-align: center;
-    padding: 16px;
-    border-radius: var(--radius);
-    margin-bottom: 20px;
-    font-weight: 500;
-    display: none;
-  }
-
-  .status-msg.success {
-    background: var(--accent-light);
-    color: var(--accent);
-    display: block;
-  }
-
-  .status-msg.error {
-    background: var(--blocked-bg);
-    color: var(--blocked);
-    display: block;
-  }
-
-  /* Responsive */
-  @media (max-width: 600px) {
-    body { padding: 12px; }
-    .app-header h1 { font-size: 1.4rem; }
-    .selection-bar { flex-direction: column; text-align: center; }
-    .calendar-grid { grid-template-columns: 1fr; }
-    .day-cell { font-size: 0.78rem; }
-  }
+  :root{--bg:#f5f0eb;--surface:#fff;--text:#2c2421;--text-muted:#8a7e78;--accent:#2d6a4f;--accent-light:#d8f3dc;--accent-hover:#1b4332;--blocked:#e07a5f;--blocked-bg:#fce4de;--taken:#e76f51;--taken-bg:#fdd5c8;--overlap:#f0ad4e;--overlap-bg:#fef3cd;--selected:#2d6a4f;--selected-bg:#b7e4c7;--weekend:#eae5e0;--border:#e0d8d2;--shadow:0 2px 12px rgba(44,36,33,0.08);--radius:10px}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);padding:24px;min-height:100vh}
+  .app-header{text-align:center;margin-bottom:32px}
+  .app-header h1{font-family:'Fraunces',serif;font-weight:800;font-size:1.8rem;color:var(--accent);margin-bottom:6px}
+  .app-header p{color:var(--text-muted);font-size:0.92rem}
+  .app-header .emp-name{font-weight:700;color:var(--accent)}
+  .loading{text-align:center;padding:60px 20px;color:var(--text-muted);font-size:1.1rem}
+  .loading .spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 16px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .legend{display:flex;justify-content:center;gap:20px;margin-bottom:28px;flex-wrap:wrap}
+  .legend-item{display:flex;align-items:center;gap:7px;font-size:0.82rem;color:var(--text-muted)}
+  .legend-dot{width:14px;height:14px;border-radius:4px;flex-shrink:0}
+  .legend-dot.available{background:var(--surface);border:1.5px solid var(--border)}
+  .legend-dot.selected{background:var(--selected-bg);border:1.5px solid var(--selected)}
+  .legend-dot.taken{background:var(--taken-bg);border:1.5px solid var(--taken)}
+  .legend-dot.overlap{background:var(--overlap-bg);border:1.5px solid var(--overlap)}
+  .legend-dot.blocked{background:var(--blocked-bg);border:1.5px solid var(--blocked)}
+  .legend-dot.weekend{background:var(--weekend);border:1.5px solid var(--border)}
+  .selection-bar{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:16px 24px;margin-bottom:28px;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--shadow);flex-wrap:wrap;gap:12px}
+  .selection-info{font-size:0.95rem}
+  .selection-info strong{color:var(--accent);font-weight:700}
+  .selection-dates{font-family:'Fraunces',serif;font-size:1.1rem;font-weight:600;color:var(--accent)}
+  .btn-group{display:flex;gap:10px;flex-wrap:wrap}
+  .btn{padding:10px 22px;border-radius:8px;border:none;font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:600;cursor:pointer;transition:all 0.2s ease}
+  .btn-confirm{background:var(--accent);color:#fff}
+  .btn-confirm:hover:not(:disabled){background:var(--accent-hover);transform:translateY(-1px);box-shadow:0 4px 12px rgba(45,106,79,0.3)}
+  .btn-confirm:disabled{opacity:0.4;cursor:not-allowed}
+  .btn-clear{background:transparent;color:var(--text-muted);border:1.5px solid var(--border)}
+  .btn-clear:hover{border-color:var(--text-muted);color:var(--text)}
+  .calendar-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px;margin-bottom:40px}
+  .month-card{background:var(--surface);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);border:1px solid var(--border)}
+  .month-title{font-family:'Fraunces',serif;font-weight:600;font-size:1.05rem;text-align:center;margin-bottom:12px;color:var(--text);text-transform:capitalize}
+  .weekday-header{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:4px}
+  .weekday-header span{text-align:center;font-size:0.72rem;font-weight:500;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;padding:4px 0}
+  .days-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+  .day-cell{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:0.82rem;font-weight:500;border-radius:6px;cursor:pointer;transition:all 0.15s ease;position:relative;user-select:none}
+  .day-cell:hover:not(.disabled):not(.weekend):not(.blocked):not(.taken):not(.page-locked){background:var(--accent-light);color:var(--accent);transform:scale(1.08)}
+  .day-cell.empty{cursor:default}
+  .day-cell.weekend{background:var(--weekend);color:var(--text-muted);cursor:not-allowed;font-weight:400}
+  .day-cell.blocked{background:var(--blocked-bg);color:var(--blocked);cursor:not-allowed;font-weight:600}
+  .day-cell.blocked::after{content:'';position:absolute;width:60%;height:1.5px;background:var(--blocked);opacity:0.5;transform:rotate(-45deg)}
+  .day-cell.taken{background:var(--taken-bg);color:var(--taken);cursor:not-allowed;font-weight:600}
+  .day-cell.overlap-day{background:var(--overlap-bg);color:var(--overlap);cursor:pointer;font-weight:600}
+  .day-cell.selected{background:var(--selected-bg);color:var(--selected);font-weight:700;box-shadow:inset 0 0 0 2px var(--selected)}
+  .day-cell.selected-start{border-radius:6px 2px 2px 6px}
+  .day-cell.selected-end{border-radius:2px 6px 6px 2px}
+  .day-cell.selected-mid{border-radius:2px}
+  .day-cell.preview{background:var(--accent-light);color:var(--accent);opacity:0.7}
+  .day-cell.invalid-preview{background:#ffeaea;color:#c0392b;opacity:0.6}
+  .day-cell.past{color:var(--border);cursor:not-allowed}
+  .day-cell.taken[title]{cursor:help}
+  .overlay{display:none;position:fixed;inset:0;background:rgba(44,36,33,0.5);z-index:100;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+  .overlay.visible{display:flex}
+  .modal{background:var(--surface);border-radius:16px;padding:32px;max-width:420px;width:90%;box-shadow:0 20px 60px rgba(44,36,33,0.2);text-align:center}
+  .modal h2{font-family:'Fraunces',serif;font-weight:800;font-size:1.3rem;color:var(--accent);margin-bottom:12px}
+  .modal p{color:var(--text-muted);margin-bottom:24px;line-height:1.6}
+  .modal .dates-display{font-family:'Fraunces',serif;font-size:1.2rem;font-weight:600;color:var(--text);margin-bottom:20px}
+  .modal-buttons{display:flex;gap:12px;justify-content:center}
+  .status-msg{text-align:center;padding:16px;border-radius:var(--radius);margin-bottom:20px;font-weight:500;display:none}
+  .status-msg.success{background:var(--accent-light);color:var(--accent);display:block}
+  .status-msg.error{background:var(--blocked-bg);color:var(--blocked);display:block}
+  .done-overlay{display:none;position:fixed;inset:0;background:rgba(45,106,79,0.95);z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(8px)}
+  .done-overlay.visible{display:flex}
+  .done-box{background:#fff;border-radius:20px;padding:48px;max-width:500px;width:90%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.3)}
+  .done-box h2{font-family:'Fraunces',serif;font-size:1.6rem;color:var(--accent);margin-bottom:16px}
+  .done-box p{color:var(--text-muted);font-size:1rem;line-height:1.6}
+  .done-box .done-dates{font-family:'Fraunces',serif;font-size:1.3rem;font-weight:600;color:var(--text);margin:20px 0}
+  @media(max-width:600px){body{padding:12px}.app-header h1{font-size:1.4rem}.selection-bar{flex-direction:column;text-align:center}.calendar-grid{grid-template-columns:1fr}.day-cell{font-size:0.78rem}}
 </style>
 </head>
 <body>
-
-<div class="app-header">
-  <h1>Choix de vacances</h1>
-  <p id="headerMsg">Chargement en cours...</p>
-</div>
-
-<div id="loadingZone" class="loading">
-  <div class="spinner"></div>
-  Connexion au système de vacances...
-</div>
-
+<div class="app-header"><h1>Choix de vacances</h1><p id="headerMsg">Chargement en cours...</p></div>
+<div id="loadingZone" class="loading"><div class="spinner"></div>Connexion au systeme de vacances...</div>
 <div id="mainContent" style="display:none;">
-
   <div class="legend">
     <div class="legend-item"><div class="legend-dot available"></div>Disponible</div>
-    <div class="legend-item"><div class="legend-dot selected"></div>Votre sélection</div>
+    <div class="legend-item"><div class="legend-dot selected"></div>Votre selection</div>
     <div class="legend-item"><div class="legend-dot taken"></div>Pris (votre groupe)</div>
-    <div class="legend-item"><div class="legend-dot blocked"></div>Bloqué / Férié</div>
+    <div class="legend-item"><div class="legend-dot overlap"></div>Chevauchement possible</div>
+    <div class="legend-item"><div class="legend-dot blocked"></div>Bloque / Ferie</div>
     <div class="legend-item"><div class="legend-dot weekend"></div>Fin de semaine</div>
   </div>
-
   <div id="statusMsg" class="status-msg"></div>
-
   <div class="selection-bar">
-    <div>
-      <div class="selection-info" id="selectionInfo">Aucune sélection — cliquez sur un jour pour commencer</div>
-      <div class="selection-dates" id="selectionDates"></div>
-    </div>
-    <div class="btn-group">
-      <button class="btn btn-clear" id="btnClear" style="display:none;" onclick="clearSelection()">Effacer</button>
-      <button class="btn btn-confirm" id="btnConfirm" disabled onclick="showConfirmation()">Confirmer mes vacances</button>
-    </div>
+    <div><div class="selection-info" id="selectionInfo">Cliquez sur votre premier jour de vacances</div><div class="selection-dates" id="selectionDates"></div></div>
+    <div class="btn-group"><button class="btn btn-clear" id="btnClear" style="display:none" onclick="clearSelection()">Effacer</button><button class="btn btn-confirm" id="btnConfirm" disabled onclick="showConfirmation()">Confirmer mes vacances</button></div>
   </div>
-
   <div class="calendar-grid" id="calendarGrid"></div>
-
 </div>
-
-<!-- Modal de confirmation -->
-<div class="overlay" id="confirmOverlay">
-  <div class="modal">
-    <h2>Confirmer vos vacances?</h2>
-    <div class="dates-display" id="modalDates"></div>
-    <p>Cette période sera réservée pour vous. Vous ne pourrez pas la modifier directement — contactez l'administration au besoin.</p>
-    <div class="modal-buttons">
-      <button class="btn btn-clear" onclick="hideConfirmation()">Annuler</button>
-      <button class="btn btn-confirm" id="btnSubmit" onclick="submitChoice()">Oui, confirmer</button>
-    </div>
-  </div>
-</div>
+<div class="overlay" id="confirmOverlay"><div class="modal"><h2>Confirmer vos vacances?</h2><div class="dates-display" id="modalDates"></div><p id="modalDaysCount"></p><div class="modal-buttons"><button class="btn btn-clear" onclick="hideConfirmation()">Annuler</button><button class="btn btn-confirm" id="btnSubmit" onclick="submitChoice()">Oui, confirmer</button></div></div></div>
+<div class="done-overlay" id="doneOverlay"><div class="done-box"><h2>Vacances confirmees!</h2><div class="done-dates" id="doneDates"></div><p>Votre choix a ete enregistre avec succes. Le prochain employe sera notifie automatiquement.<br><br>Vous pouvez fermer cette page.</p></div></div>
 
 <script>
-// ==============================================================
-//  CONFIGURATION
-// ==============================================================
-
-var CONFIG = {
-  appName: 'choix-vacances',
-  appLinkName: 'choix-vacances',
-  formName: 'Choix_Vacances',
-  reportName: 'Choix_Vacances_Report',
-  employeReportName: 'Employes_Vacances_Report',
-
-  // Employé courant (sera rempli par URL params ou SDK)
-  employeRecordId: null,
-  employeNom: '',
-  employeGroupe: '',
-
-  // Dates bloquées (Noël semaines 17-18 = 21 déc 2026 — 3 jan 2027)
-  blockedRanges: [
-    { start: new Date(2026, 11, 21), end: new Date(2027, 0, 3) }
-  ],
-
-  // Périodes avec vacances interdites (1er juin — 31 août)
-  noVacationRanges: [
-    { start: new Date(2026, 5, 1), end: new Date(2026, 7, 31) }
-  ],
-
-  // Jours fériés Québec (entre août 2026 et juin 2027)
-  holidays: [
-    { date: new Date(2026, 8, 7),  label: 'Fête du Travail' },
-    { date: new Date(2026, 9, 12), label: 'Action de grâce' },
-    { date: new Date(2027, 2, 26), label: 'Vendredi saint' },
-    { date: new Date(2027, 4, 24), label: 'Journée des patriotes' },
-    { date: new Date(2027, 5, 24), label: 'Fête nationale du Québec' }
-  ],
-
-  // Plage du calendrier
-  calendarStart: new Date(2026, 7, 1),   // Août 2026
-  calendarEnd: new Date(2027, 5, 30),     // Juin 2027
-
-  // Dates déjà prises par le groupe (chargées dynamiquement)
-  takenDates: [],
-
-  // Mode SDK disponible
-  sdkReady: false
+var CONFIG={formName:'Choix_Vacances',reportName:'Choix_Vacances_Report',employeReportName:'Employes_Vacances_Report',employeRecordId:null,employeNom:'',employeGroupe:'',
+blockedRanges:[{start:new Date(2026,11,21),end:new Date(2027,0,3)}],
+noVacationRanges:[{start:new Date(2026,5,1),end:new Date(2026,7,31)}],
+holidays:[
+  {date:new Date(2026,8,7),label:'Fete du Travail'},
+  {date:new Date(2026,9,12),label:'Action de grace'},
+  {date:new Date(2027,2,26),label:'Vendredi saint'},
+  {date:new Date(2027,4,24),label:'Journee des patriotes'},
+  {date:new Date(2027,5,24),label:'Fete nationale du Quebec'}
+],
+calendarStart:new Date(2026,8,1),
+calendarEnd:new Date(2027,5,30),
+takenDates:[],
+maxDays:7,
+minDays:1
 };
 
+var API={proxyUrl:'https://zoho-proxy.conception.workers.dev'};
 
-// ==============================================================
-//  ÉTAT
-// ==============================================================
+function apiGet(rn,cr){var u=API.proxyUrl+'/api/report/'+rn;if(cr)u+='?criteria='+cr;console.log('API GET:',u);return fetch(u).then(function(r){return r.json()})}
+function apiPost(fn,d){var u=API.proxyUrl+'/api/form/'+fn;console.log('API POST:',u);return fetch(u,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)}).then(function(r){return r.json()})}
 
-var selectedDays = [];
-var previewDays = [];
-var previewValid = true;
-var isSubmitting = false;
+var selectionStart=null;
+var selectedDays=[];
+var previewDays=[];
+var previewValid=true;
+var isSubmitting=false;
+var pageLocked=false;
+var MOIS_FR=['Janvier','Fevrier','Mars','Avril','Mai','Juin','Juillet','Aout','Septembre','Octobre','Novembre','Decembre'];
 
-var MOIS_FR = ['Janvier','Février','Mars','Avril','Mai','Juin',
-  'Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+function isSameDay(a,b){return a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate()}
+function isWeekend(d){return d.getDay()===0||d.getDay()===6}
+function isBlocked(d){return CONFIG.blockedRanges.some(function(r){return d>=r.start&&d<=r.end})}
+function isNoVacation(d){return CONFIG.noVacationRanges.some(function(r){return d>=r.start&&d<=r.end})}
+function isHoliday(d){return CONFIG.holidays.some(function(h){return isSameDay(d,h.date)})}
+function getHolidayLabel(d){for(var i=0;i<CONFIG.holidays.length;i++){if(isSameDay(d,CONFIG.holidays[i].date))return CONFIG.holidays[i].label}return''}
 
-
-// ==============================================================
-//  UTILITAIRES DATES
-// ==============================================================
-
-function isSameDay(a, b) {
-  return a.getFullYear() === b.getFullYear()
-    && a.getMonth() === b.getMonth()
-    && a.getDate() === b.getDate();
+function isTakenFull(d){
+  return CONFIG.takenDates.some(function(r){
+    var isStart=isSameDay(d,r.start);
+    var isEnd=isSameDay(d,r.end);
+    if(isStart||isEnd)return false;
+    return d>r.start&&d<r.end;
+  });
 }
 
-function isWeekend(d) { return d.getDay() === 0 || d.getDay() === 6; }
-
-function isBlocked(d) {
-  return CONFIG.blockedRanges.some(function(r) { return d >= r.start && d <= r.end; });
+function isOverlapDay(d){
+  return CONFIG.takenDates.some(function(r){
+    return isSameDay(d,r.start)||isSameDay(d,r.end);
+  });
 }
 
-function isNoVacation(d) {
-  return CONFIG.noVacationRanges.some(function(r) { return d >= r.start && d <= r.end; });
+function isTaken(d){
+  return isTakenFull(d);
 }
 
-function isHoliday(d) {
-  return CONFIG.holidays.some(function(h) { return isSameDay(d, h.date); });
-}
-
-function getHolidayLabel(d) {
-  for (var i = 0; i < CONFIG.holidays.length; i++) {
-    if (isSameDay(d, CONFIG.holidays[i].date)) return CONFIG.holidays[i].label;
+function getTakenBy(d){
+  for(var i=0;i<CONFIG.takenDates.length;i++){
+    var r=CONFIG.takenDates[i];
+    if(d>=r.start&&d<=r.end)return r.employeNom;
   }
-  return '';
+  return'';
 }
 
-function isTaken(d) {
-  return CONFIG.takenDates.some(function(r) { return d >= r.start && d <= r.end; });
-}
+function isPast(d){var t=new Date();t.setHours(0,0,0,0);return d<t}
+function isAvailable(d){return!isWeekend(d)&&!isBlocked(d)&&!isNoVacation(d)&&!isHoliday(d)&&!isTakenFull(d)&&!isPast(d)}
 
-function getTakenBy(d) {
-  for (var i = 0; i < CONFIG.takenDates.length; i++) {
-    var r = CONFIG.takenDates[i];
-    if (d >= r.start && d <= r.end) return r.employeNom;
-  }
-  return '';
-}
-
-function isPast(d) {
-  var today = new Date();
-  today.setHours(0, 0, 0, 0);
-  return d < today;
-}
-
-function isAvailable(d) {
-  return !isWeekend(d) && !isBlocked(d) && !isNoVacation(d) && !isHoliday(d) && !isTaken(d) && !isPast(d);
-}
-
-function get5BusinessDaysFrom(startDate) {
-  var days = [];
-  var current = new Date(startDate);
-  while (days.length < 5) {
-    if (!isWeekend(current)) {
-      days.push(new Date(current));
+function getBusinessDaysBetween(start,end){
+  var days=[];
+  var c=new Date(start);
+  while(c<=end){
+    if(!isWeekend(c)&&!isHoliday(c)){
+      days.push(new Date(c));
     }
-    current.setDate(current.getDate() + 1);
+    c.setDate(c.getDate()+1);
   }
   return days;
 }
 
-function areAllAvailable(days) {
-  return days.every(function(d) { return isAvailable(d); });
+function areAllAvailable(days){return days.every(function(d){return isAvailable(d)})}
+function formatDateFr(d){return d.getDate()+' '+MOIS_FR[d.getMonth()].toLowerCase()+' '+d.getFullYear()}
+function formatDateISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function formatDateZoho(d){var m=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];return String(d.getDate()).padStart(2,'0')+'-'+m[d.getMonth()]+'-'+d.getFullYear()}
+function parseZohoDate(s){if(!s)return null;var d=new Date(s);if(!isNaN(d.getTime()))return d;return null}
+
+function generateCalendar(){
+  var g=document.getElementById('calendarGrid');g.innerHTML='';
+  var c=new Date(CONFIG.calendarStart.getFullYear(),CONFIG.calendarStart.getMonth(),1);
+  var e=new Date(CONFIG.calendarEnd.getFullYear(),CONFIG.calendarEnd.getMonth(),1);
+  while(c<=e){g.appendChild(createMonthCard(c.getFullYear(),c.getMonth()));c.setMonth(c.getMonth()+1)}
 }
 
-function formatDateFr(d) {
-  return d.getDate() + ' ' + MOIS_FR[d.getMonth()].toLowerCase() + ' ' + d.getFullYear();
-}
-
-function formatDateISO(d) {
-  var y = d.getFullYear();
-  var m = String(d.getMonth() + 1).padStart(2, '0');
-  var day = String(d.getDate()).padStart(2, '0');
-  return y + '-' + m + '-' + day;
-}
-
-// Format pour Zoho Creator: dd-MMM-yyyy (ex: 14-Sep-2026)
-function formatDateZoho(d) {
-  var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  var day = String(d.getDate()).padStart(2, '0');
-  return day + '-' + months[d.getMonth()] + '-' + d.getFullYear();
-}
-
-// Parse "31-Aug-2026" or "2026-08-31" or "Aug 31, 2026" etc.
-function parseZohoDate(str) {
-  if (!str) return null;
-  var d = new Date(str);
-  if (!isNaN(d.getTime())) return d;
-  return null;
-}
-
-
-// ==============================================================
-//  GÉNÉRATION DU CALENDRIER
-// ==============================================================
-
-function generateCalendar() {
-  var grid = document.getElementById('calendarGrid');
-  grid.innerHTML = '';
-  var current = new Date(CONFIG.calendarStart.getFullYear(), CONFIG.calendarStart.getMonth(), 1);
-  var endMonth = new Date(CONFIG.calendarEnd.getFullYear(), CONFIG.calendarEnd.getMonth(), 1);
-  while (current <= endMonth) {
-    grid.appendChild(createMonthCard(current.getFullYear(), current.getMonth()));
-    current.setMonth(current.getMonth() + 1);
-  }
-}
-
-function createMonthCard(year, month) {
-  var card = document.createElement('div');
-  card.className = 'month-card';
-
-  var title = document.createElement('div');
-  title.className = 'month-title';
-  title.textContent = MOIS_FR[month] + ' ' + year;
-  card.appendChild(title);
-
-  var header = document.createElement('div');
-  header.className = 'weekday-header';
-  ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].forEach(function(j) {
-    var span = document.createElement('span');
-    span.textContent = j;
-    header.appendChild(span);
-  });
-  card.appendChild(header);
-
-  var daysGrid = document.createElement('div');
-  daysGrid.className = 'days-grid';
-
-  var firstDay = new Date(year, month, 1);
-  var startOffset = firstDay.getDay() - 1;
-  if (startOffset < 0) startOffset = 6;
-
-  for (var i = 0; i < startOffset; i++) {
-    var empty = document.createElement('div');
-    empty.className = 'day-cell empty';
-    daysGrid.appendChild(empty);
-  }
-
-  var daysInMonth = new Date(year, month + 1, 0).getDate();
-  for (var day = 1; day <= daysInMonth; day++) {
-    var date = new Date(year, month, day);
-    var cell = document.createElement('div');
-    cell.className = 'day-cell';
-    cell.textContent = day;
-    cell.dataset.date = formatDateISO(date);
-
-    if (isWeekend(date)) {
-      cell.classList.add('weekend');
-    } else if (isHoliday(date)) {
-      cell.classList.add('blocked');
-      cell.title = getHolidayLabel(date);
-    } else if (isBlocked(date) || isNoVacation(date)) {
-      cell.classList.add('blocked');
-    } else if (isTaken(date)) {
-      cell.classList.add('taken');
-      var takenBy = getTakenBy(date);
-      if (takenBy) cell.title = 'Pris par ' + takenBy;
-    } else if (isPast(date)) {
-      cell.classList.add('past');
-    } else {
-      (function(d, c) {
-        c.addEventListener('click', function() { handleDayClick(d); });
-        c.addEventListener('mouseenter', function() { handleDayHover(d); });
-        c.addEventListener('mouseleave', function() { clearPreview(); });
-      })(date, cell);
+function createMonthCard(y,m){
+  var card=document.createElement('div');card.className='month-card';
+  var t=document.createElement('div');t.className='month-title';t.textContent=MOIS_FR[m]+' '+y;card.appendChild(t);
+  var h=document.createElement('div');h.className='weekday-header';
+  ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'].forEach(function(j){var s=document.createElement('span');s.textContent=j;h.appendChild(s)});
+  card.appendChild(h);
+  var dg=document.createElement('div');dg.className='days-grid';
+  var fd=new Date(y,m,1);var so=fd.getDay()-1;if(so<0)so=6;
+  for(var i=0;i<so;i++){var e=document.createElement('div');e.className='day-cell empty';dg.appendChild(e)}
+  var dim=new Date(y,m+1,0).getDate();
+  for(var d=1;d<=dim;d++){
+    var dt=new Date(y,m,d);
+    var c=document.createElement('div');c.className='day-cell';c.textContent=d;c.dataset.date=formatDateISO(dt);
+    if(isWeekend(dt)){c.classList.add('weekend')}
+    else if(isHoliday(dt)){c.classList.add('blocked');c.title=getHolidayLabel(dt)}
+    else if(isBlocked(dt)||isNoVacation(dt)){c.classList.add('blocked')}
+    else if(isTakenFull(dt)){c.classList.add('taken');var tb=getTakenBy(dt);if(tb)c.title='Pris par '+tb}
+    else if(isOverlapDay(dt)&&!isPast(dt)){c.classList.add('overlap-day');var tb2=getTakenBy(dt);if(tb2)c.title='Chevauchement possible ('+tb2+')';
+      (function(dd,cc){cc.addEventListener('click',function(){handleDayClick(dd)});cc.addEventListener('mouseenter',function(){handleDayHover(dd)});cc.addEventListener('mouseleave',function(){clearPreview()})})(dt,c)
     }
-
-    daysGrid.appendChild(cell);
+    else if(isPast(dt)){c.classList.add('past')}
+    else{(function(dd,cc){cc.addEventListener('click',function(){handleDayClick(dd)});cc.addEventListener('mouseenter',function(){handleDayHover(dd)});cc.addEventListener('mouseleave',function(){clearPreview()})})(dt,c)}
+    dg.appendChild(c);
   }
-
-  card.appendChild(daysGrid);
-  return card;
+  card.appendChild(dg);return card;
 }
 
+function handleDayClick(date){
+  if(isSubmitting||pageLocked)return;
+  
+  if(selectionStart===null){
+    if(!isAvailable(date)&&!isOverlapDay(date))return;
+    selectionStart=date;
+    selectedDays=[date];
+    updateDisplay();
+    document.getElementById('selectionInfo').innerHTML='<strong>Debut:</strong> '+formatDateFr(date)+' — Cliquez sur votre dernier jour';
+    document.getElementById('selectionDates').textContent='';
+    document.getElementById('btnClear').style.display='inline-block';
+    document.getElementById('btnConfirm').disabled=true;
+  } else {
+    if(date<selectionStart){
+      showStatus('La date de fin doit etre apres la date de debut.','error');
+      setTimeout(hideStatus,3000);
+      return;
+    }
+    var bizDays=getBusinessDaysBetween(selectionStart,date);
+    if(bizDays.length<CONFIG.minDays){
+      showStatus('Minimum '+CONFIG.minDays+' jour(s) ouvrable(s).','error');
+      setTimeout(hideStatus,3000);
+      return;
+    }
+    if(bizDays.length>CONFIG.maxDays){
+      showStatus('Maximum '+CONFIG.maxDays+' jours ouvrables par periode.','error');
+      setTimeout(hideStatus,3000);
+      return;
+    }
+    var hasConflict=false;
+    for(var i=1;i<bizDays.length-1;i++){
+      if(isTakenFull(bizDays[i])){hasConflict=true;break}
+    }
+    if(hasConflict){
+      showStatus('Certains jours au milieu de votre selection sont deja pris.','error');
+      setTimeout(hideStatus,3000);
+      return;
+    }
+    selectedDays=bizDays;
+    selectionStart=null;
+    updateDisplay();
+  }
+}
 
-// ==============================================================
-//  INTERACTION
-// ==============================================================
-
-function handleDayClick(date) {
-  if (isSubmitting) return;
-  var fiveDays = get5BusinessDaysFrom(date);
-
-  if (!areAllAvailable(fiveDays)) {
-    showStatus('Impossible : certains jours de ce bloc sont bloqués, pris ou tombent hors période.', 'error');
-    setTimeout(hideStatus, 3000);
+function handleDayHover(date){
+  if(pageLocked)return;
+  if(selectionStart!==null){
+    if(date>=selectionStart){
+      var bizDays=getBusinessDaysBetween(selectionStart,date);
+      previewDays=bizDays;
+      previewValid=bizDays.length>=CONFIG.minDays&&bizDays.length<=CONFIG.maxDays;
+      var midConflict=false;
+      for(var i=1;i<bizDays.length-1;i++){if(isTakenFull(bizDays[i])){midConflict=true;break}}
+      if(midConflict)previewValid=false;
+    }else{
+      previewDays=[];previewValid=false;
+    }
+    updateCellClasses();
+    if(previewDays.length>0){
+      document.getElementById('selectionInfo').innerHTML='<strong>'+previewDays.length+' jour(s) ouvrable(s)</strong>'+(previewValid?'':' — invalide');
+    }
     return;
   }
-
-  selectedDays = fiveDays;
-  clearPreview();
-  updateDisplay();
-}
-
-function handleDayHover(date) {
-  if (selectedDays.length > 0 || isSubmitting) return;
-  var fiveDays = get5BusinessDaysFrom(date);
-  previewDays = fiveDays;
-  previewValid = areAllAvailable(fiveDays);
+  if(selectedDays.length>1||isSubmitting)return;
+  previewDays=[];previewValid=true;
   updateCellClasses();
 }
 
-function clearPreview() {
-  previewDays = [];
-  previewValid = true;
-  updateCellClasses();
+function clearPreview(){
+  if(selectionStart!==null)return;
+  previewDays=[];previewValid=true;updateCellClasses();
 }
 
-function clearSelection() {
-  selectedDays = [];
-  previewDays = [];
-  updateDisplay();
+function clearSelection(){
+  selectionStart=null;selectedDays=[];previewDays=[];updateDisplay();
+  document.getElementById('selectionInfo').textContent='Cliquez sur votre premier jour de vacances';
+  document.getElementById('selectionDates').textContent='';
+  document.getElementById('btnClear').style.display='none';
+  document.getElementById('btnConfirm').disabled=true;
 }
 
+function updateDisplay(){updateCellClasses();updateSelectionBar()}
 
-// ==============================================================
-//  AFFICHAGE
-// ==============================================================
-
-function updateDisplay() {
-  updateCellClasses();
-  updateSelectionBar();
-}
-
-function updateCellClasses() {
-  document.querySelectorAll('.day-cell[data-date]').forEach(function(cell) {
-    var parts = cell.dataset.date.split('-');
-    var date = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
-
-    cell.classList.remove('selected', 'selected-start', 'selected-end', 'selected-mid', 'preview', 'invalid-preview');
-
-    if (selectedDays.length > 0) {
-      var idx = -1;
-      for (var i = 0; i < selectedDays.length; i++) {
-        if (isSameDay(selectedDays[i], date)) { idx = i; break; }
-      }
-      if (idx !== -1) {
-        cell.classList.add('selected');
-        if (idx === 0) cell.classList.add('selected-start');
-        else if (idx === selectedDays.length - 1) cell.classList.add('selected-end');
-        else cell.classList.add('selected-mid');
-      }
+function updateCellClasses(){
+  document.querySelectorAll('.day-cell[data-date]').forEach(function(c){
+    var p=c.dataset.date.split('-');
+    var d=new Date(parseInt(p[0]),parseInt(p[1])-1,parseInt(p[2]));
+    c.classList.remove('selected','selected-start','selected-end','selected-mid','preview','invalid-preview');
+    if(selectedDays.length>0){
+      var x=-1;for(var i=0;i<selectedDays.length;i++){if(isSameDay(selectedDays[i],d)){x=i;break}}
+      if(x!==-1){c.classList.add('selected');if(x===0)c.classList.add('selected-start');else if(x===selectedDays.length-1)c.classList.add('selected-end');else c.classList.add('selected-mid')}
     }
-
-    if (previewDays.length > 0 && selectedDays.length === 0) {
-      var inP = previewDays.some(function(d) { return isSameDay(d, date); });
-      if (inP) cell.classList.add(previewValid ? 'preview' : 'invalid-preview');
+    if(previewDays.length>0&&selectionStart!==null){
+      var ip=previewDays.some(function(dd){return isSameDay(dd,d)});
+      if(ip)c.classList.add(previewValid?'preview':'invalid-preview');
     }
   });
 }
 
-function updateSelectionBar() {
-  var info = document.getElementById('selectionInfo');
-  var dates = document.getElementById('selectionDates');
-  var btnClear = document.getElementById('btnClear');
-  var btnConfirm = document.getElementById('btnConfirm');
-
-  if (selectedDays.length === 5) {
-    info.innerHTML = '<strong>5 jours sélectionnés</strong> — vos vacances :';
-    dates.textContent = formatDateFr(selectedDays[0]) + '  →  ' + formatDateFr(selectedDays[4]);
-    btnClear.style.display = 'inline-block';
-    btnConfirm.disabled = false;
+function updateSelectionBar(){
+  var i=document.getElementById('selectionInfo');
+  var d=document.getElementById('selectionDates');
+  var bc=document.getElementById('btnClear');
+  var bf=document.getElementById('btnConfirm');
+  if(selectedDays.length>1||( selectedDays.length===1&&selectionStart===null)){
+    var nDays=selectedDays.length;
+    i.innerHTML='<strong>'+nDays+' jour(s) ouvrable(s) selectionne(s)</strong> — vos vacances :';
+    d.textContent=formatDateFr(selectedDays[0])+' -> '+formatDateFr(selectedDays[selectedDays.length-1]);
+    bc.style.display='inline-block';
+    bf.disabled=false;
+  } else if(selectionStart!==null){
+    bc.style.display='inline-block';
+    bf.disabled=true;
   } else {
-    info.textContent = 'Aucune sélection — cliquez sur un jour pour commencer';
-    dates.textContent = '';
-    btnClear.style.display = 'none';
-    btnConfirm.disabled = true;
+    i.textContent='Cliquez sur votre premier jour de vacances';
+    d.textContent='';bc.style.display='none';bf.disabled=true;
   }
 }
 
-
-// ==============================================================
-//  CONFIRMATION ET SOUMISSION
-// ==============================================================
-
-function showConfirmation() {
-  if (selectedDays.length !== 5) return;
-  document.getElementById('modalDates').textContent =
-    formatDateFr(selectedDays[0]) + '  →  ' + formatDateFr(selectedDays[4]);
+function showConfirmation(){
+  if(selectedDays.length<CONFIG.minDays)return;
+  document.getElementById('modalDates').textContent=formatDateFr(selectedDays[0])+' -> '+formatDateFr(selectedDays[selectedDays.length-1]);
+  document.getElementById('modalDaysCount').textContent=selectedDays.length+' jour(s) ouvrable(s). Cette periode sera reservee pour vous.';
   document.getElementById('confirmOverlay').classList.add('visible');
 }
 
-function hideConfirmation() {
-  document.getElementById('confirmOverlay').classList.remove('visible');
-}
+function hideConfirmation(){document.getElementById('confirmOverlay').classList.remove('visible')}
 
-function submitChoice() {
-  if (isSubmitting) return;
-  isSubmitting = true;
-  hideConfirmation();
-
-  var dateDebut = formatDateZoho(selectedDays[0]);
-  var dateFin = formatDateZoho(selectedDays[4]);
-  var submitBtn = document.getElementById('btnSubmit');
-  submitBtn.textContent = 'Envoi en cours...';
-  submitBtn.disabled = true;
-
-  if (API.proxyUrl) {
-    // Soumission via proxy Cloudflare
-    var body = {
-      data: {
-        Employes_Vacances: CONFIG.employeRecordId,
-        Date_debut: dateDebut,
-        Date_fin: dateFin
+function submitChoice(){
+  if(isSubmitting||pageLocked)return;
+  isSubmitting=true;hideConfirmation();
+  var dateDebut=formatDateZoho(selectedDays[0]);
+  var dateFin=formatDateZoho(selectedDays[selectedDays.length-1]);
+  var sb=document.getElementById('btnSubmit');sb.textContent='Envoi...';sb.disabled=true;
+  var body={data:{Employes_Vacances:CONFIG.employeRecordId,Date_debut:dateDebut,Date_fin:dateFin}};
+  console.log('Soumission:',JSON.stringify(body));
+  apiPost('Choix_Vacances',body)
+    .then(function(response){
+      console.log('Reponse:',JSON.stringify(response));
+      if(response.code===3000){
+        pageLocked=true;
+        document.getElementById('doneDates').textContent=formatDateFr(selectedDays[0])+' -> '+formatDateFr(selectedDays[selectedDays.length-1]);
+        document.getElementById('doneOverlay').classList.add('visible');
+      }else{
+        showStatus('Erreur: '+(response.message||JSON.stringify(response)),'error');
+        resetSubmitBtn();
       }
-    };
-
-    console.log('Soumission:', JSON.stringify(body));
-
-    apiPost('Choix_Vacances', body)
-    .then(function(r) { return r.json(); })
-    .then(function(response) {
-      console.log('Reponse REST:', JSON.stringify(response));
-      if (response.code === 3000) {
-        showStatus(
-          'Vacances confirmées! Du ' + formatDateFr(selectedDays[0]) +
-          ' au ' + formatDateFr(selectedDays[4]) +
-          '. Le prochain employé sera notifié automatiquement.',
-          'success'
-        );
-        CONFIG.takenDates.push({
-          start: new Date(selectedDays[0]),
-          end: new Date(selectedDays[4]),
-          employeNom: CONFIG.employeNom || 'Vous'
-        });
-        selectedDays = [];
-        generateCalendar();
-        updateDisplay();
-      } else {
-        showStatus('Erreur: ' + (response.message || JSON.stringify(response)), 'error');
-      }
-      resetSubmitBtn();
     })
-    .catch(function(err) {
-      console.error('Erreur soumission:', err);
-      showStatus('Erreur réseau: ' + err.message, 'error');
+    .catch(function(e){
+      console.error('Erreur:',e);
+      showStatus('Erreur reseau: '+e.message,'error');
       resetSubmitBtn();
     });
-  } else {
-    // Mode démo
-    console.log('MODE DEMO - Soumission:', dateDebut, '->', dateFin);
-    setTimeout(function() {
-      showStatus(
-        'Mode démo — Vacances du ' + formatDateFr(selectedDays[0]) +
-        ' au ' + formatDateFr(selectedDays[4]),
-        'success'
-      );
-      CONFIG.takenDates.push({
-        start: new Date(selectedDays[0]),
-        end: new Date(selectedDays[4]),
-        employeNom: CONFIG.employeNom || 'Vous'
-      });
-      selectedDays = [];
-      generateCalendar();
-      updateDisplay();
-      resetSubmitBtn();
-    }, 500);
-  }
 }
 
-function resetSubmitBtn() {
-  isSubmitting = false;
-  var submitBtn = document.getElementById('btnSubmit');
-  submitBtn.textContent = 'Oui, confirmer';
-  submitBtn.disabled = false;
-}
+function resetSubmitBtn(){isSubmitting=false;var s=document.getElementById('btnSubmit');s.textContent='Oui, confirmer';s.disabled=false}
 
-
-// ==============================================================
-//  CHARGEMENT DES DONNÉES VIA API REST
-// ==============================================================
-
-var API = {
-  // Proxy Cloudflare - gere le token automatiquement
-  proxyUrl: 'https://zoho-proxy.conception.workers.dev',
-  accessToken: null
-};
-
-function getAccessToken() {
-  return new Promise(function(resolve) {
+function loadAllData(){
+  return new Promise(function(resolve){
     console.log('Proxy Cloudflare: OK');
-    resolve();
-  });
-}
-
-function apiGet(reportName, criteria) {
-  var url = API.proxyUrl + '/api/report/' + reportName;
-  if (criteria) {
-    url += '?criteria=' + criteria;
-  }
-  console.log('API GET:', url);
-  return fetch(url).then(function(r) { return r.json(); });
-}
-
-function apiPost(formName, data) {
-  var url = API.proxyUrl + '/api/form/' + formName;
-  return fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-  }).then(function(r) { return r.json(); });
-}
-
-function loadAllData() {
-  return new Promise(function(resolve) {
-    if (!CONFIG.sdkReady) {
-      CONFIG.employeNom = 'Mode démo';
-      CONFIG.employeGroupe = 'Administration';
-      CONFIG.employeRecordId = '12345';
-      CONFIG.takenDates = [
-        { start: new Date(2026, 8, 14), end: new Date(2026, 8, 18), employeNom: 'Carl Houle' },
-        { start: new Date(2026, 10, 2), end: new Date(2026, 10, 6), employeNom: 'Isabelle Vinet' }
-      ];
-      resolve();
-      return;
-    }
-
-    // Étape 1: Obtenir un access token
-    console.log('Obtention du token...');
-    getAccessToken()
-      .then(function() {
-        // Étape 2: Chercher l'employé Son_tour
-        console.log('Recherche employe Son_tour...');
-        return apiGet('Employees_Vacances_Report', '(Statut == "Son_tour")');
-      })
-      .then(function(empResponse) {
-        console.log('Employes Son_tour:', JSON.stringify(empResponse));
-        if (empResponse.code === 3000 && empResponse.data && empResponse.data.length > 0) {
-          var emp = empResponse.data[0];
-          CONFIG.employeRecordId = emp.ID;
-          CONFIG.employeNom = emp.Nom || '';
-          CONFIG.employeGroupe = emp.Groupe || '';
-          console.log('Employe identifie:', CONFIG.employeNom, '(' + CONFIG.employeGroupe + ')');
-        } else {
-          console.warn('Aucun employe Son_tour:', empResponse);
-        }
-
-        // Étape 3: Charger les congés existants
+    console.log('Recherche employe Son_tour...');
+    apiGet(CONFIG.employeReportName,'(Statut == "Son_tour")')
+      .then(function(er){
+        console.log('Employes Son_tour:',JSON.stringify(er));
+        if(er.code===3000&&er.data&&er.data.length>0){
+          var e=er.data[0];CONFIG.employeRecordId=e.ID;CONFIG.employeNom=e.Nom||'';CONFIG.employeGroupe=e.Groupe||'';
+          console.log('Employe:',CONFIG.employeNom,'('+CONFIG.employeGroupe+')');
+        }else{console.warn('Aucun Son_tour:',er)}
         console.log('Chargement conges...');
-        var criteria = CONFIG.employeGroupe ? '(Employes_Vacances.Groupe == "' + CONFIG.employeGroupe + '")' : null;
-        return apiGet('Choix_Vacances_Report', criteria);
+        var cr=CONFIG.employeGroupe?'(Employes_Vacances.Groupe == "'+CONFIG.employeGroupe+'")':null;
+        return apiGet(CONFIG.reportName,cr);
       })
-      .then(function(congesResponse) {
-        console.log('Conges charges:', JSON.stringify(congesResponse));
-        if (congesResponse && congesResponse.code === 3000 && congesResponse.data) {
-          congesResponse.data.forEach(function(record) {
-            var debut = parseZohoDate(record.Date_debut);
-            var fin = parseZohoDate(record.Date_fin);
-            var nom = '';
-            if (record.Employes_Vacances) {
-              if (typeof record.Employes_Vacances === 'object') {
-                nom = record.Employes_Vacances.display_value || '';
-              } else {
-                nom = record.Employes_Vacances;
-              }
-            }
-            if (debut && fin) {
-              CONFIG.takenDates.push({ start: debut, end: fin, employeNom: nom });
-            }
+      .then(function(cr){
+        console.log('Conges:',JSON.stringify(cr));
+        if(cr&&cr.code===3000&&cr.data){
+          cr.data.forEach(function(rec){
+            var db=parseZohoDate(rec.Date_debut);var fn=parseZohoDate(rec.Date_fin);var nm='';
+            if(rec.Employes_Vacances){nm=typeof rec.Employes_Vacances==='object'?(rec.Employes_Vacances.display_value||''):rec.Employes_Vacances}
+            if(db&&fn){CONFIG.takenDates.push({start:db,end:fn,employeNom:nm})}
           });
-          console.log('Total conges charges:', CONFIG.takenDates.length);
+          console.log('Total conges:',CONFIG.takenDates.length);
         }
         resolve();
       })
-      .catch(function(err) {
-        console.warn('Erreur chargement donnees:', err);
-        resolve();
-      });
+      .catch(function(e){console.warn('Erreur:',e);resolve()});
   });
 }
 
+function showStatus(m,t){var e=document.getElementById('statusMsg');e.textContent=m;e.className='status-msg '+t}
+function hideStatus(){document.getElementById('statusMsg').className='status-msg'}
 
-// ==============================================================
-//  STATUS MESSAGES
-// ==============================================================
-
-function showStatus(msg, type) {
-  var el = document.getElementById('statusMsg');
-  el.textContent = msg;
-  el.className = 'status-msg ' + type;
+function showApp(){
+  document.getElementById('loadingZone').style.display='none';
+  document.getElementById('mainContent').style.display='block';
+  var h=document.getElementById('headerMsg');
+  if(CONFIG.employeNom){h.innerHTML='Bonjour <span class="emp-name">'+CONFIG.employeNom+'</span>! Selectionnez vos dates de vacances (1 a 7 jours ouvrables).'}
+  else{h.textContent='Selectionnez vos dates de vacances (1 a 7 jours ouvrables).'}
+  if(CONFIG.employeGroupe){h.innerHTML+='<br><small style="color:var(--text-muted);">Groupe : '+CONFIG.employeGroupe+'</small>'}
+  generateCalendar();updateDisplay();
 }
 
-function hideStatus() {
-  document.getElementById('statusMsg').className = 'status-msg';
-}
-
-
-// ==============================================================
-//  INITIALISATION
-// ==============================================================
-
-function showApp() {
-  document.getElementById('loadingZone').style.display = 'none';
-  document.getElementById('mainContent').style.display = 'block';
-
-  var headerMsg = document.getElementById('headerMsg');
-  if (CONFIG.employeNom && CONFIG.employeNom !== 'Mode démo') {
-    headerMsg.innerHTML = 'Bonjour <span class="emp-name">' + CONFIG.employeNom +
-      '</span>! Sélectionnez un jour pour réserver un bloc de 5 jours ouvrables consécutifs.';
-  } else {
-    headerMsg.textContent = 'Sélectionnez une journée pour réserver un bloc de 5 jours ouvrables consécutifs.';
-  }
-
-  if (CONFIG.employeGroupe) {
-    headerMsg.innerHTML += '<br><small style="color:var(--text-muted);">Groupe : ' + CONFIG.employeGroupe + '</small>';
-  }
-
-  generateCalendar();
-  updateDisplay();
-}
-
-function initApp() {
+function initApp(){
   console.log('Initialisation calendrier vacances...');
-  // Toujours utiliser l'API REST directe (pas de SDK)
-  CONFIG.sdkReady = true;
-  loadAllData()
-    .then(function() { showApp(); })
-    .catch(function(err) {
-      console.error('Erreur init:', err);
-      showApp();
-    });
+  loadAllData().then(function(){showApp()}).catch(function(e){console.error('Erreur:',e);showApp()});
 }
 
-// Démarrer
 initApp();
 </script>
-
 </body>
 </html>
