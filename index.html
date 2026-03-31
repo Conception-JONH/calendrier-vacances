@@ -913,35 +913,19 @@ function resetSubmitBtn() {
 // ==============================================================
 
 var API = {
-  clientId: '1000.0ZK5CYFTZEKUSR7Z82464ABK3DMN6B',
-  clientSecret: '0947f1b3a279490df1764226808614de3e9f4d0b87',
-  refreshToken: '1000.171d5259b17d16d13eb322134094dc38.867150b5ae1d7167db4c02b053bf9125',
-  accessToken: null,
+  // Access token - renouveler via PowerShell quand expire (1h)
+  // Commande: Invoke-RestMethod -Method POST -Uri "https://accounts.zohocloud.ca/oauth/v2/token" -Body @{grant_type="refresh_token"; client_id="1000.0ZK5CYFTZEKUSR7Z82464ABK3DMN6B"; client_secret="0947f1b3a279490df1764226808614de3e9f4d0b87"; refresh_token="1000.171d5259b17d16d13eb322134094dc38.867150b5ae1d7167db4c02b053bf9125"}
+  accessToken: '1000.a39a026cd64151210bff04f2da9bd32e.709e58cd1fe06e4edc24a9f4911a2fbb',
   apiDomain: 'https://www.zohoapis.ca',
   owner: 'jonolhouleetfilsinc',
   appName: 'choix-vacances'
 };
 
 function getAccessToken() {
-  return new Promise(function(resolve, reject) {
-    fetch('https://accounts.zohocloud.ca/oauth/v2/token', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: 'grant_type=refresh_token&client_id=' + API.clientId +
-            '&client_secret=' + API.clientSecret +
-            '&refresh_token=' + API.refreshToken
-    })
-    .then(function(r) { return r.json(); })
-    .then(function(data) {
-      console.log('Token recu:', data.access_token ? 'OK' : 'ERREUR');
-      if (data.access_token) {
-        API.accessToken = data.access_token;
-        resolve(data.access_token);
-      } else {
-        reject(data.error || 'Erreur token');
-      }
-    })
-    .catch(function(err) { reject(err); });
+  return new Promise(function(resolve) {
+    // Token déjà défini
+    console.log('Token disponible: OK');
+    resolve(API.accessToken);
   });
 }
 
