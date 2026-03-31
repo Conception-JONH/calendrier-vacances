@@ -920,7 +920,7 @@ function getAccessToken() {
 function apiGet(reportName, criteria) {
   var url = API.proxyUrl + '/api/report/' + reportName;
   if (criteria) {
-    url += '?criteria=' + encodeURIComponent(criteria);
+    url += '?criteria=' + criteria;
   }
   console.log('API GET:', url);
   return fetch(url).then(function(r) { return r.json(); });
