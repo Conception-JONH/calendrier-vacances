@@ -829,9 +829,8 @@ function submitChoice() {
   submitBtn.textContent = 'Envoi en cours...';
   submitBtn.disabled = true;
 
-  if (API.accessToken) {
-    // Soumission via API REST
-    var url = API.apiDomain + '/creator/v2.1/' + API.owner + '/' + API.appName + '/form/Choix_Vacances';
+  if (API.proxyUrl) {
+    // Soumission via proxy Cloudflare
     var body = {
       data: {
         Employes_Vacances: CONFIG.employeRecordId,
@@ -840,16 +839,9 @@ function submitChoice() {
       }
     };
 
-    console.log('Soumission REST:', JSON.stringify(body));
+    console.log('Soumission:', JSON.stringify(body));
 
-    fetch(url, {
-      method: 'POST',
-      headers: {
-        'Authorization': 'Zoho-oauthtoken ' + API.accessToken,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(body)
-    })
+    apiPost('Choix_Vacances', body)
     .then(function(r) { return r.json(); })
     .then(function(response) {
       console.log('Reponse REST:', JSON.stringify(response));
@@ -913,30 +905,33 @@ function resetSubmitBtn() {
 // ==============================================================
 
 var API = {
-  // Access token - renouveler via PowerShell quand expire (1h)
-  // Commande: Invoke-RestMethod -Method POST -Uri "https://accounts.zohocloud.ca/oauth/v2/token" -Body @{grant_type="refresh_token"; client_id="1000.0ZK5CYFTZEKUSR7Z82464ABK3DMN6B"; client_secret="0947f1b3a279490df1764226808614de3e9f4d0b87"; refresh_token="1000.171d5259b17d16d13eb322134094dc38.867150b5ae1d7167db4c02b053bf9125"}
-  accessToken: '1000.a39a026cd64151210bff04f2da9bd32e.709e58cd1fe06e4edc24a9f4911a2fbb',
-  apiDomain: 'https://www.zohoapis.ca',
-  owner: 'jonolhouleetfilsinc',
-  appName: 'choix-vacances'
+  // Proxy Cloudflare - gere le token automatiquement
+  proxyUrl: 'https://zoho-proxy.conception.workers.dev',
+  accessToken: null
 };
 
 function getAccessToken() {
   return new Promise(function(resolve) {
-    // Token déjà défini
-    console.log('Token disponible: OK');
-    resolve(API.accessToken);
+    console.log('Proxy Cloudflare: OK');
+    resolve();
   });
 }
 
 function apiGet(reportName, criteria) {
-  var url = API.apiDomain + '/creator/v2.1/' + API.owner + '/' + API.appName + '/report/' + reportName;
+  var url = API.proxyUrl + '/api/report/' + reportName;
   if (criteria) {
     url += '?criteria=' + encodeURIComponent(criteria);
   }
+  console.log('API GET:', url);
+  return fetch(url).then(function(r) { return r.json(); });
+}
+
+function apiPost(formName, data) {
+  var url = API.proxyUrl + '/api/form/' + formName;
   return fetch(url, {
-    method: 'GET',
-    headers: { 'Authorization': 'Zoho-oauthtoken ' + API.accessToken }
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
   }).then(function(r) { return r.json(); });
 }
 
