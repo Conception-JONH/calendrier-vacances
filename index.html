@@ -253,11 +253,13 @@ function loadAllData(){
             var db=parseZohoDate(rec.Date_debut),fn=parseZohoDate(rec.Date_fin),nm='',grp='';
             if(rec.Employes_Vacances){
               if(typeof rec.Employes_Vacances==='object'){
-                nm=rec.Employes_Vacances.display_value||'';
+                nm=rec.Employes_Vacances.zc_display_value||rec.Employes_Vacances.display_value||rec.Employes_Vacances.Nom||'';
                 grp=rec.Employes_Vacances.Groupe||'';
               }else{nm=rec.Employes_Vacances}
             }
+            console.log('DEBUG conge:', nm, 'empMap[nm]:', empMap[nm], 'ID:', rec.Employes_Vacances?rec.Employes_Vacances.ID:'none', 'empMap[ID]:', rec.Employes_Vacances?empMap[rec.Employes_Vacances.ID]:'none');
             if(!grp&&nm&&empMap[nm])grp=empMap[nm];
+            if(!grp&&rec.Employes_Vacances&&rec.Employes_Vacances.ID&&empMap[rec.Employes_Vacances.ID])grp=empMap[rec.Employes_Vacances.ID];
             if(db&&fn){
               var en={start:db,end:fn,employeNom:nm,groupe:grp};
               CONFIG.takenDates.push(en);CONFIG.allTakenDates.push(en);
@@ -278,7 +280,7 @@ function loadAllData(){
       console.log('Chargement conges...');var cr=CONFIG.employeGroupe?'(Employes_Vacances.Groupe == "'+CONFIG.employeGroupe+'")':null;return apiGet(CONFIG.reportName,cr)
     }).then(function(cr){
       console.log('Conges:',JSON.stringify(cr));
-      if(cr&&cr.code===3000&&cr.data){cr.data.forEach(function(rec){var db=parseZohoDate(rec.Date_debut),fn=parseZohoDate(rec.Date_fin),nm='';if(rec.Employes_Vacances){nm=typeof rec.Employes_Vacances==='object'?(rec.Employes_Vacances.display_value||''):rec.Employes_Vacances}if(db&&fn){CONFIG.takenDates.push({start:db,end:fn,employeNom:nm})}});console.log('Total conges:',CONFIG.takenDates.length)}resolve()
+      if(cr&&cr.code===3000&&cr.data){cr.data.forEach(function(rec){var db=parseZohoDate(rec.Date_debut),fn=parseZohoDate(rec.Date_fin),nm='';if(rec.Employes_Vacances){nm=typeof rec.Employes_Vacances==='object'?(rec.Employes_Vacances.zc_display_value||rec.Employes_Vacances.display_value||rec.Employes_Vacances.Nom||''):rec.Employes_Vacances}if(db&&fn){CONFIG.takenDates.push({start:db,end:fn,employeNom:nm})}});console.log('Total conges:',CONFIG.takenDates.length)}resolve()
     }).catch(function(e){console.warn('Erreur:',e);resolve()})
   })
 }
