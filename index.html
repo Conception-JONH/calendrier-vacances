@@ -233,10 +233,41 @@ function loadAllData(){
   return new Promise(function(resolve){
     console.log('Proxy Cloudflare: OK');
     if(IS_ADMIN){
-      console.log('Mode admin: chargement tous les conges...');
-      apiGet(CONFIG.reportName).then(function(cr){
+      console.log('Mode admin: chargement employes + conges...');
+      var empMap={};
+      apiGet(CONFIG.employeReportName).then(function(er){
+        if(er&&er.code===3000&&er.data){
+          er.data.forEach(function(e){
+            var nm=e.Nom||'';var grp=e.Groupe||'';var id=e.ID;
+            if(nm)empMap[nm]=grp;
+            if(id)empMap[id]=grp;
+          });
+          console.log('Employes charges:',Object.keys(empMap).length);
+        }
+        return apiGet(CONFIG.reportName);
+      }).then(function(cr){
         console.log('Conges admin:',JSON.stringify(cr));
-        if(cr&&cr.code===3000&&cr.data){var gs={};cr.data.forEach(function(rec){var db=parseZohoDate(rec.Date_debut),fn=parseZohoDate(rec.Date_fin),nm='',grp='';if(rec.Employes_Vacances){if(typeof rec.Employes_Vacances==='object'){nm=rec.Employes_Vacances.display_value||'';grp=rec.Employes_Vacances.Groupe||''}else{nm=rec.Employes_Vacances}}if(db&&fn){var en={start:db,end:fn,employeNom:nm,groupe:grp};CONFIG.takenDates.push(en);CONFIG.allTakenDates.push(en);if(grp)gs[grp]=true}});CONFIG.groups=Object.keys(gs).sort();console.log('Groupes:',CONFIG.groups,'Total:',CONFIG.takenDates.length)}resolve()
+        if(cr&&cr.code===3000&&cr.data){
+          var gs={};
+          cr.data.forEach(function(rec){
+            var db=parseZohoDate(rec.Date_debut),fn=parseZohoDate(rec.Date_fin),nm='',grp='';
+            if(rec.Employes_Vacances){
+              if(typeof rec.Employes_Vacances==='object'){
+                nm=rec.Employes_Vacances.display_value||'';
+                grp=rec.Employes_Vacances.Groupe||'';
+              }else{nm=rec.Employes_Vacances}
+            }
+            if(!grp&&nm&&empMap[nm])grp=empMap[nm];
+            if(db&&fn){
+              var en={start:db,end:fn,employeNom:nm,groupe:grp};
+              CONFIG.takenDates.push(en);CONFIG.allTakenDates.push(en);
+              if(grp)gs[grp]=true;
+            }
+          });
+          CONFIG.groups=Object.keys(gs).sort();
+          console.log('Groupes:',CONFIG.groups,'Total:',CONFIG.takenDates.length);
+        }
+        resolve();
       }).catch(function(e){console.warn('Erreur admin:',e);resolve()});
       return
     }
