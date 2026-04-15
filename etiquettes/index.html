@@ -88,41 +88,7 @@ input[type="checkbox"] { width: 15px; height: 15px; accent-color: #6B8C3E; curso
 
 <script>
 var currentOrder = null;
-var cachedToken = null;
-var tokenExpiry = 0;
-
-var CONFIG = {
-    clientId:     '1000.0ZK5CYFTZEKUSR7Z82464ABK3DMN6B',
-    clientSecret: '0947f1b3a279490df1764226808614de3e9f4d0b87',
-    refreshToken: '1000.1fbed3b0abd9576277162bebab73ed89.2c464120b598af7d05ac181843c7c09a',
-    tokenUrl:     'https://accounts.zohocloud.ca/oauth/v2/token',
-    orgId:        '110001570252',
-    apiBase:      'https://www.zohoapis.ca/inventory/v1'
-};
-
-function getAccessToken() {
-    if (cachedToken && Date.now() < tokenExpiry) {
-        return Promise.resolve(cachedToken);
-    }
-    var body = 'grant_type=refresh_token' +
-        '&client_id=' + CONFIG.clientId +
-        '&client_secret=' + CONFIG.clientSecret +
-        '&refresh_token=' + CONFIG.refreshToken;
-
-    return fetch(CONFIG.tokenUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: body
-    }).then(function(r) { return r.json(); })
-    .then(function(data) {
-        if (data.access_token) {
-            cachedToken = data.access_token;
-            tokenExpiry = Date.now() + (data.expires_in - 60) * 1000;
-            return cachedToken;
-        }
-        throw new Error('Token failed: ' + JSON.stringify(data));
-    });
-}
+var PROXY = 'https://zoho-proxy.conception.workers.dev';
 
 function rechercher() {
     var soNum = document.getElementById('soNumber').value.trim();
@@ -134,23 +100,18 @@ function rechercher() {
     showStatus('searchStatus', 'info', '⏳ Chargement...');
     document.getElementById('orderCard').style.display = 'none';
 
-    getAccessToken().then(function(token) {
-        var url = CONFIG.apiBase + '/salesorders?organization_id=' + CONFIG.orgId + '&salesorder_number=' + soNum;
-        return fetch(url, {
-            headers: { 'Authorization': 'Zoho-oauthtoken ' + token }
-        }).then(function(r) { return r.json(); })
-        .then(function(data) {
-            var orders = data.salesorders;
-            if (!orders || orders.length === 0) {
-                throw new Error('Commande introuvable : ' + soNum);
-            }
-            var soId = orders[0].salesorder_id;
-            var detailUrl = CONFIG.apiBase + '/salesorders/' + soId + '?organization_id=' + CONFIG.orgId;
-            return fetch(detailUrl, {
-                headers: { 'Authorization': 'Zoho-oauthtoken ' + token }
-            }).then(function(r) { return r.json(); });
-        });
-    }).then(function(detail) {
+    // Étape 1 : chercher par numéro
+    fetch(PROXY + '/inventory/salesorders?salesorder_number=' + soNum)
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        var orders = data.salesorders;
+        if (!orders || orders.length === 0) throw new Error('Commande introuvable : ' + soNum);
+        var soId = orders[0].salesorder_id;
+        // Étape 2 : charger le détail
+        return fetch(PROXY + '/inventory/salesorders/' + soId);
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(detail) {
         var so = detail.salesorder;
         if (!so) throw new Error('Détail introuvable');
         currentOrder = so;
@@ -160,9 +121,11 @@ function rechercher() {
             return d.indexOf('=#CLIENT') !== 0 && d.charCodeAt(0) !== 8212;
         }).length;
         showStatus('searchStatus', 'success', '✅ Commande ' + so.salesorder_number + ' — ' + nbItems + ' item(s) chargé(s).');
-    }).catch(function(err) {
+    })
+    .catch(function(err) {
         showStatus('searchStatus', 'error', '❌ ' + (err.message || JSON.stringify(err)));
-    }).finally(function() {
+    })
+    .finally(function() {
         btn.disabled = false;
         btn.innerHTML = '🔍 Rechercher';
     });
