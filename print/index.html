@@ -2,68 +2,44 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8" />
-<title>🖨️ Impression JONH</title>
+<title>Impression JONH</title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <style>
-  * { box-sizing: border-box; }
   body {
     font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
-    max-width: 600px;
-    margin: 60px auto;
-    padding: 30px;
+    margin: 0;
+    padding: 40px 20px;
     text-align: center;
-    color: #222;
+    color: #555;
+    background: #fafafa;
   }
-  h1 {
-    color: #5b8c1f;
-    border-bottom: 3px solid #5b8c1f;
-    padding-bottom: 15px;
-    margin-bottom: 30px;
-  }
-  .card {
-    background: #f8f9fa;
-    border-radius: 10px;
-    padding: 30px;
-    box-shadow: 0 2px 8px rgba(0,0,0,.08);
+  .mini {
+    max-width: 400px;
+    margin: 0 auto;
   }
   .so {
-    font-size: 28px;
-    font-weight: bold;
+    font-size: 20px;
     color: #1976d2;
-    margin: 20px 0;
+    font-weight: 600;
+    margin: 10px 0;
     font-family: "Consolas", monospace;
   }
-  .loading {
-    display: inline-block;
-    width: 40px;
-    height: 40px;
-    border: 4px solid #eee;
-    border-top: 4px solid #5b8c1f;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin: 20px 0;
-  }
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+  .info {
+    font-size: 13px;
+    color: #888;
+    margin-top: 15px;
   }
   button {
     background: #5b8c1f;
     color: white;
-    padding: 12px 30px;
+    padding: 8px 20px;
     border: 0;
-    border-radius: 6px;
-    font-size: 16px;
-    font-weight: 600;
+    border-radius: 5px;
+    font-size: 14px;
     cursor: pointer;
-    margin-top: 20px;
+    margin-top: 10px;
   }
   button:hover { background: #4a7318; }
-  .info {
-    color: #666;
-    font-size: 14px;
-    margin-top: 20px;
-  }
   .error {
     color: #d32f2f;
     margin-top: 15px;
@@ -71,16 +47,12 @@
 </style>
 </head>
 <body>
-<div class="card">
-  <h1>🖨️ Impression JONH</h1>
-  
+<div class="mini">
   <div id="content-valid" style="display:none;">
-    <p>Ouverture de la commande :</p>
     <div class="so" id="so-display"></div>
-    <div class="loading"></div>
-    <p class="info">Bluebeam va s'ouvrir automatiquement...</p>
-    <p class="info">Si rien ne se passe, clique le bouton ci-dessous.</p>
-    <button id="btn-retry">🖨️ Ouvrir Bluebeam</button>
+    <p class="info">🖨️ Ouverture Bluebeam...</p>
+    <p class="info">Tu peux fermer cet onglet</p>
+    <button id="btn-retry" style="display:none;">Ouvrir Bluebeam</button>
   </div>
   
   <div id="content-invalid" style="display:none;">
@@ -102,6 +74,15 @@
     
     // Déclenche le protocole immédiatement
     window.location.href = protocolUrl;
+    
+    // Tentative de fermeture auto après 2 secondes
+    setTimeout(() => {
+      window.close();
+      // Si la fermeture échoue (sécurité navigateur), afficher le bouton de secours
+      setTimeout(() => {
+        document.getElementById('btn-retry').style.display = 'inline-block';
+      }, 500);
+    }, 2000);
     
     // Bouton de secours si ça ne démarre pas tout seul
     document.getElementById('btn-retry').addEventListener('click', () => {
