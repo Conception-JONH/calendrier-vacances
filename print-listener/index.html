@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>JONH — Impression automatique Sherbrooke</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background: #f5f5f5;
+    color: #333;
+  }
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    padding: 24px;
+  }
+  h1 {
+    color: #6B8E3D;
+    border-bottom: 3px solid #6B8E3D;
+    padding-bottom: 12px;
+    margin-top: 0;
+  }
+  .status-bar {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin: 20px 0;
+  }
+  .status-card {
+    padding: 16px;
+    border-radius: 6px;
+    background: #f9f9f9;
+    border-left: 4px solid #ccc;
+  }
+  .status-card.ok { border-left-color: #4CAF50; background: #f1f8f1; }
+  .status-card.err { border-left-color: #f44336; background: #fef3f3; }
+  .status-card.warn { border-left-color: #FF9800; background: #fff8f0; }
+  .status-label {
+    font-size: 12px;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+  }
+  .status-value {
+    font-size: 18px;
+    font-weight: 600;
+  }
+  .controls {
+    display: flex;
+    gap: 12px;
+    margin: 20px 0;
+    flex-wrap: wrap;
+  }
+  button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.2s;
+  }
+  .btn-primary { background: #6B8E3D; color: white; }
+  .btn-primary:hover { background: #557030; }
+  .btn-secondary { background: #e0e0e0; color: #333; }
+  .btn-secondary:hover { background: #d0d0d0; }
+  .btn-danger { background: #f44336; color: white; }
+  .btn-danger:hover { background: #d32f2f; }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  .log {
+    background: #1e1e1e;
+    color: #d4d4d4;
+    padding: 16px;
+    border-radius: 6px;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 13px;
+    height: 400px;
+    overflow-y: auto;
+    margin-top: 20px;
+  }
+  .log-entry { margin: 4px 0; }
+  .log-entry.info { color: #9cdcfe; }
+  .log-entry.ok { color: #6A9955; }
+  .log-entry.err { color: #f48771; }
+  .log-entry.warn { color: #dcdcaa; }
+  .log-time { color: #808080; margin-right: 8px; }
+  .config-info {
+    background: #f0f4f8;
+    padding: 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    color: #555;
+    margin-top: 20px;
+  }
+  .pulse {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    background: #4CAF50;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+    margin-right: 6px;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/rsvp@4.8.5/dist/rsvp.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/qzind/tray@v2.2.6/js/dependencies/sha-256.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/qzind/tray@v2.2.6/js/qz-tray.js"></script>
+</head>
+<body>
+<div class="container">
+  <h1>🖨️ JONH — Impression automatique Sherbrooke</h1>
+
+  <div class="status-bar">
+    <div class="status-card" id="card-qz">
+      <div class="status-label">QZ Tray</div>
+      <div class="status-value" id="status-qz">Non connecté</div>
+    </div>
+    <div class="status-card" id="card-printer">
+      <div class="status-label">Imprimante</div>
+      <div class="status-value" id="status-printer">—</div>
+    </div>
+    <div class="status-card" id="card-polling">
+      <div class="status-label">Surveillance</div>
+      <div class="status-value" id="status-polling">Arrêtée</div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="btn-primary" id="btn-start" onclick="startAll()">▶ Démarrer</button>
+    <button class="btn-secondary" id="btn-stop" onclick="stopAll()" disabled>⏸ Arrêter</button>
+    <button class="btn-secondary" onclick="testPrint()">🧪 Imprimer un test</button>
+    <button class="btn-danger" onclick="clearLog()">🗑 Effacer log</button>
+  </div>
+
+  <div class="config-info">
+    <strong>Configuration :</strong><br>
+    Site : <code>sherbrooke</code> |
+    Imprimante : <code id="cfg-printer">Canon MF650C Series</code> |
+    Intervalle : <code>15 secondes</code> |
+    Worker : <code>zoho-proxy.conception.workers.dev</code>
+  </div>
+
+  <div class="log" id="log">
+    <div class="log-entry info"><span class="log-time">--:--:--</span>En attente de démarrage...</div>
+  </div>
+</div>
+
+<script>
+  // ─────────── CONFIGURATION ───────────
+  const CONFIG = {
+    workerUrl: 'https://zoho-proxy.conception.workers.dev',
+    site: 'sherbrooke',
+    printerName: 'MF650C Series',
+    pollIntervalMs: 15000
+  };
+
+  let pollIntervalId = null;
+  let selectedPrinter = null;
+  let processingIds = new Set(); // pour éviter d'imprimer 2x le même
+
+  // ─────────── LOGGING ───────────
+  function log(message, type = 'info') {
+    const logEl = document.getElementById('log');
+    const entry = document.createElement('div');
+    entry.className = 'log-entry ' + type;
+    const time = new Date().toLocaleTimeString('fr-CA');
+    entry.innerHTML = '<span class="log-time">' + time + '</span>' + message;
+    logEl.appendChild(entry);
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+
+  function clearLog() {
+    document.getElementById('log').innerHTML = '';
+    log('Log effacé', 'info');
+  }
+
+  function setStatus(card, value, type) {
+    document.getElementById('status-' + card).textContent = value;
+    const cardEl = document.getElementById('card-' + card);
+    cardEl.classList.remove('ok', 'err', 'warn');
+    if (type) cardEl.classList.add(type);
+  }
+
+  // ─────────── QZ TRAY ───────────
+  async function connectQZ() {
+    log('Connexion à QZ Tray...', 'info');
+    try {
+      if (qz.websocket.isActive()) {
+        log('Déjà connecté à QZ Tray', 'ok');
+      } else {
+        // Mode unsigned pour le test (va afficher popup de confirmation)
+        qz.security.setCertificatePromise(function(resolve, reject) { resolve(); });
+        qz.security.setSignaturePromise(function(toSign) {
+          return function(resolve, reject) { resolve(); };
+        });
+        await qz.websocket.connect({ retries: 3, delay: 1 });
+        log('Connecté à QZ Tray', 'ok');
+      }
+      setStatus('qz', 'Connecté', 'ok');
+
+      // Cherche l'imprimante
+      log('Recherche de l\'imprimante ' + CONFIG.printerName + '...', 'info');
+      const printer = await qz.printers.find(CONFIG.printerName);
+      selectedPrinter = printer;
+      log('Imprimante trouvée : ' + printer, 'ok');
+      setStatus('printer', printer, 'ok');
+      return true;
+    } catch (err) {
+      log('Erreur QZ Tray : ' + err, 'err');
+      setStatus('qz', 'Erreur', 'err');
+      setStatus('printer', '—', 'err');
+      return false;
+    }
+  }
+
+  async function disconnectQZ() {
+    try {
+      if (qz.websocket.isActive()) {
+        await qz.websocket.disconnect();
+        log('Déconnecté de QZ Tray', 'info');
+      }
+    } catch (err) {
+      log('Erreur déconnexion : ' + err, 'err');
+    }
+    setStatus('qz', 'Non connecté', null);
+    setStatus('printer', '—', null);
+    selectedPrinter = null;
+  }
+
+  // ─────────── IMPRESSION ───────────
+  async function printPDF(entry) {
+    if (processingIds.has(entry.id)) {
+      return; // déjà en cours
+    }
+    processingIds.add(entry.id);
+
+    log('📄 Impression : ' + entry.pdfName + ' (tâche ' + entry.taskName + ')', 'info');
+
+    try {
+      const config = qz.configs.create(selectedPrinter, {
+        colorType: 'color',
+        orientation: 'portrait',
+        scaleContent: true
+      });
+
+      const data = [{
+        type: 'pixel',
+        format: 'pdf',
+        flavor: 'file',
+        data: entry.pdfUrl
+      }];
+
+      await qz.print(config, data);
+      log('✅ Imprimé : ' + entry.pdfName, 'ok');
+
+      // Marque comme imprimé (DELETE)
+      await fetch(CONFIG.workerUrl + '/print-queue/' + entry.id, {
+        method: 'DELETE'
+      });
+      log('🗑 Retiré de la file : ' + entry.id, 'info');
+    } catch (err) {
+      log('❌ Erreur impression ' + entry.pdfName + ' : ' + err, 'err');
+    } finally {
+      processingIds.delete(entry.id);
+    }
+  }
+
+  // ─────────── POLLING ───────────
+  async function checkQueue() {
+    try {
+      const res = await fetch(CONFIG.workerUrl + '/print-queue?site=' + CONFIG.site);
+      const data = await res.json();
+      if (data.entries && data.entries.length > 0) {
+        log('🔔 ' + data.entries.length + ' document(s) à imprimer', 'warn');
+        for (const entry of data.entries) {
+          await printPDF(entry);
+        }
+      }
+    } catch (err) {
+      log('Erreur polling : ' + err, 'err');
+    }
+  }
+
+  function startPolling() {
+    if (pollIntervalId) return;
+    log('▶ Surveillance démarrée (vérification toutes les ' + (CONFIG.pollIntervalMs / 1000) + 's)', 'ok');
+    setStatus('polling', 'Active', 'ok');
+    checkQueue(); // premier check immédiat
+    pollIntervalId = setInterval(checkQueue, CONFIG.pollIntervalMs);
+  }
+
+  function stopPolling() {
+    if (pollIntervalId) {
+      clearInterval(pollIntervalId);
+      pollIntervalId = null;
+      log('⏸ Surveillance arrêtée', 'warn');
+    }
+    setStatus('polling', 'Arrêtée', null);
+  }
+
+  // ─────────── CONTRÔLES ───────────
+  async function startAll() {
+    document.getElementById('btn-start').disabled = true;
+    const connected = await connectQZ();
+    if (connected) {
+      startPolling();
+      document.getElementById('btn-stop').disabled = false;
+    } else {
+      document.getElementById('btn-start').disabled = false;
+    }
+  }
+
+  async function stopAll() {
+    stopPolling();
+    await disconnectQZ();
+    document.getElementById('btn-start').disabled = false;
+    document.getElementById('btn-stop').disabled = true;
+  }
+
+  async function testPrint() {
+    if (!selectedPrinter) {
+      log('Impossible : QZ Tray pas connecté', 'err');
+      return;
+    }
+    log('🧪 Test d\'impression via URL PDF...', 'info');
+    try {
+      const config = qz.configs.create(selectedPrinter);
+      const data = [{
+        type: 'pixel',
+        format: 'pdf',
+        flavor: 'file',
+        data: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf'
+      }];
+      await qz.print(config, data);
+      log('✅ Test envoyé à l\'imprimante', 'ok');
+    } catch (err) {
+      log('❌ Test échoué : ' + err, 'err');
+    }
+  }
+
+  // Affiche la config
+  document.getElementById('cfg-printer').textContent = CONFIG.printerName;
+  log('Page prête. Cliquez sur "Démarrer" pour lancer la surveillance.', 'info');
+</script>
+</body>
+</html>
