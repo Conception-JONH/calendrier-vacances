@@ -5,14 +5,27 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Étiquettes JONH — Zoho Inventory</title>
 <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet">
+<!-- QZ Tray library -->
+<script src="https://cdn.jsdelivr.net/npm/qz-tray@2.2.4/qz-tray.min.js"></script>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: 'Lato', Arial, sans-serif; background: #F5F7FA; padding: 40px 20px; min-height: 100vh; }
 .container { max-width: 700px; margin: 0 auto; background: white; border-radius: 6px; box-shadow: 0 1px 4px rgba(0,0,0,0.12); padding: 36px; }
-.header { display: flex; align-items: center; gap: 14px; margin-bottom: 28px; padding-bottom: 20px; border-bottom: 2px solid #6B8C3E; }
+.header { display: flex; align-items: center; gap: 14px; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 2px solid #6B8C3E; }
 .jonh-badge { background: #6B8C3E; color: white; font-weight: 900; font-size: 22px; letter-spacing: 2px; padding: 8px 16px; border-radius: 5px; line-height: 1; }
 .header-text h1 { font-size: 20px; font-weight: 700; color: #2C3E50; }
 .header-text p  { font-size: 13px; color: #95A5A6; margin-top: 2px; }
+
+/* QZ Tray status bar */
+.qz-bar { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-radius: 4px; margin-bottom: 20px; font-size: 12px; font-weight: 700; background: #FFF3CD; color: #856404; border: 1px solid #FFE69C; }
+.qz-bar.connected { background: #DFF0D8; color: #3C763D; border-color: #D6E9C6; }
+.qz-bar.error { background: #FDECEA; color: #B94A48; border-color: #F5C6CB; }
+.qz-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 8px; background: #E0A800; vertical-align: middle; }
+.qz-bar.connected .qz-dot { background: #3C763D; }
+.qz-bar.error .qz-dot { background: #B94A48; }
+.qz-bar button { background: transparent; border: 1px solid currentColor; color: inherit; padding: 4px 10px; font-size: 11px; font-weight: 700; border-radius: 3px; cursor: pointer; font-family: 'Lato', sans-serif; }
+.qz-bar button:hover { background: rgba(0,0,0,0.05); }
+
 .search-row { display: flex; gap: 10px; margin-bottom: 6px; }
 .search-row input { flex: 1; padding: 12px 16px; border: 1px solid #D1D9E6; border-radius: 4px; font-size: 15px; font-family: 'Lato', sans-serif; color: #2C3E50; transition: border-color 0.2s; }
 .search-row input:focus { outline: none; border-color: #6B8C3E; box-shadow: 0 0 0 3px rgba(107,140,62,0.12); }
@@ -22,6 +35,8 @@ body { font-family: 'Lato', Arial, sans-serif; background: #F5F7FA; padding: 40p
 .btn-green:disabled { background: #B0C48A; cursor: not-allowed; }
 .btn-blue { background: #4A90E2; color: white; }
 .btn-blue:hover { background: #357ABD; }
+.btn-orange { background: #E67E22; color: white; }
+.btn-orange:hover { background: #CA6F1E; }
 .btn-sm { padding: 9px 16px; font-size: 13px; }
 .status { padding: 12px 16px; border-radius: 4px; font-size: 13px; margin-top: 10px; display: none; }
 .status.success { background: #DFF0D8; color: #3C763D; border: 1px solid #D6E9C6; display: block; }
@@ -40,7 +55,7 @@ body { font-family: 'Lato', Arial, sans-serif; background: #F5F7FA; padding: 40p
 .item-name { font-weight: 600; font-size: 12px; }
 .item-dessin { font-size: 11px; color: #6B8C3E; font-weight: 700; margin-top: 2px; }
 input[type="checkbox"] { width: 15px; height: 15px; accent-color: #6B8C3E; cursor: pointer; }
-.action-bar { padding: 14px 18px; background: #F8F9FC; border-top: 1px solid #E5E9F2; display: flex; gap: 10px; align-items: center; }
+.action-bar { padding: 14px 18px; background: #F8F9FC; border-top: 1px solid #E5E9F2; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.4); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; margin-right: 6px; vertical-align: middle; }
 @keyframes spin { to { transform: rotate(360deg); } }
 @media print { body { display: none; } }
@@ -55,6 +70,16 @@ input[type="checkbox"] { width: 15px; height: 15px; accent-color: #6B8C3E; curso
             <p>Zoho Inventory — Sales Orders</p>
         </div>
     </div>
+
+    <!-- QZ Tray status bar -->
+    <div class="qz-bar" id="qzBar">
+        <div>
+            <span class="qz-dot" id="qzDot"></span>
+            <span id="qzStatus">QZ Tray : en attente de connexion...</span>
+        </div>
+        <button onclick="connectQZ()" id="qzBtn">Connecter</button>
+    </div>
+
     <div class="search-row">
         <input type="text" id="soNumber" placeholder="Numéro de commande (ex: 165117)" onkeydown="if(event.key==='Enter') rechercher()" />
         <button class="btn btn-green" onclick="rechercher()" id="btnSearch">🔍 Rechercher</button>
@@ -79,7 +104,8 @@ input[type="checkbox"] { width: 15px; height: 15px; accent-color: #6B8C3E; curso
             <tbody id="itemsBody"></tbody>
         </table>
         <div class="action-bar">
-            <button class="btn btn-green" onclick="genererEtiquettes()" style="flex:1;">🖨️ Générer les étiquettes</button>
+            <button class="btn btn-green" onclick="imprimerQZ()" style="flex:1;" id="btnQZ">🖨️ Imprimer</button>
+            <button class="btn btn-orange btn-sm" onclick="genererEtiquettes()" title="Aperçu navigateur (fallback)">Aperçu</button>
             <button class="btn btn-blue btn-sm" onclick="toutSelectionner()">Tout sélect.</button>
             <button class="btn btn-sm" style="background:#E5E9F2;color:#5A6C7D;" onclick="toutDeselectionner()">Effacer</button>
         </div>
@@ -87,9 +113,86 @@ input[type="checkbox"] { width: 15px; height: 15px; accent-color: #6B8C3E; curso
 </div>
 
 <script>
-var currentOrder = null;
+// ============================================================
+// CONFIGURATION
+// ============================================================
 var PROXY = 'https://zoho-proxy.conception.workers.dev';
 
+// Nom de l'imprimante cible pour QZ Tray
+// Pour tester chez Marie-Philip : Canon MF650C
+// Pour production chez Isabelle : changer pour "ZDesigner ZD421" ou nom exact de la Zebra
+var PRINTER_NAME = 'MF650C Series';
+
+// ============================================================
+// ÉTAT GLOBAL
+// ============================================================
+var currentOrder = null;
+var qzConnected = false;
+
+// ============================================================
+// QZ TRAY — Connexion et gestion
+// ============================================================
+function updateQzBar(state, message) {
+    var bar = document.getElementById('qzBar');
+    var status = document.getElementById('qzStatus');
+    var btn = document.getElementById('qzBtn');
+    bar.className = 'qz-bar ' + (state || '');
+    status.textContent = message;
+    if (state === 'connected') {
+        btn.textContent = 'Reconnecter';
+    } else if (state === 'error') {
+        btn.textContent = 'Réessayer';
+    } else {
+        btn.textContent = 'Connecter';
+    }
+}
+
+function connectQZ() {
+    if (typeof qz === 'undefined') {
+        updateQzBar('error', 'Librairie QZ Tray non chargée (problème réseau?)');
+        return;
+    }
+
+    // Configuration QZ Tray Community Edition (sans certificat signé)
+    // En Community Edition : popup de confirmation à chaque impression
+    // Pour impression silencieuse : nécessite un certificat signé (à faire plus tard)
+    qz.security.setCertificatePromise(function(resolve, reject) {
+        resolve(); // Community edition — pas de certificat
+    });
+    qz.security.setSignaturePromise(function(toSign) {
+        return function(resolve, reject) { resolve(); };
+    });
+
+    updateQzBar('', 'Connexion à QZ Tray...');
+
+    qz.websocket.connect()
+    .then(function() {
+        qzConnected = true;
+        // Vérifier que l'imprimante cible existe
+        return qz.printers.find(PRINTER_NAME);
+    })
+    .then(function(printerFound) {
+        updateQzBar('connected', 'QZ Tray : connecté  •  Imprimante : ' + printerFound);
+    })
+    .catch(function(err) {
+        if (qzConnected) {
+            // Connecté mais imprimante pas trouvée
+            updateQzBar('error', 'QZ Tray connecté mais "' + PRINTER_NAME + '" introuvable. Vérifiez le nom.');
+        } else {
+            updateQzBar('error', 'QZ Tray non accessible. Est-il démarré sur ce poste?');
+        }
+        console.error('QZ Tray error:', err);
+    });
+}
+
+// Tentative de connexion auto au chargement
+window.addEventListener('load', function() {
+    setTimeout(connectQZ, 500);
+});
+
+// ============================================================
+// RECHERCHE DE COMMANDE (inchangé)
+// ============================================================
 function rechercher() {
     var soNum = document.getElementById('soNumber').value.trim();
     if (!soNum) { showStatus('searchStatus', 'error', 'Entrez un numéro de commande.'); return; }
@@ -100,14 +203,12 @@ function rechercher() {
     showStatus('searchStatus', 'info', '⏳ Chargement...');
     document.getElementById('orderCard').style.display = 'none';
 
-    // Étape 1 : chercher par numéro
     fetch(PROXY + '/inventory/salesorders?salesorder_number=' + soNum)
     .then(function(r) { return r.json(); })
     .then(function(data) {
         var orders = data.salesorders;
         if (!orders || orders.length === 0) throw new Error('Commande introuvable : ' + soNum);
         var soId = orders[0].salesorder_id;
-        // Étape 2 : charger le détail
         return fetch(PROXY + '/inventory/salesorders/' + soId);
     })
     .then(function(r) { return r.json(); })
@@ -162,12 +263,16 @@ function afficherCommande(so) {
 function toutSelectionner()   { document.querySelectorAll('.item-check').forEach(function(cb) { cb.checked = true; }); }
 function toutDeselectionner() { document.querySelectorAll('.item-check').forEach(function(cb) { cb.checked = false; }); }
 
-function genererEtiquettes() {
-    if (!currentOrder) return;
+// ============================================================
+// GÉNÉRATION DU HTML DES ÉTIQUETTES (factorisé)
+// ============================================================
+function buildLabelsHtml() {
     var so = currentOrder;
+    if (!so) return null;
+
     var selected = [];
     document.querySelectorAll('.item-check:checked').forEach(function(cb) { selected.push(parseInt(cb.dataset.idx)); });
-    if (selected.length === 0) { alert('Sélectionnez au moins un item.'); return; }
+    if (selected.length === 0) { alert('Sélectionnez au moins un item.'); return null; }
 
     var items = selected.map(function(i) { return so.line_items[i]; });
     var totalItems = so.line_items.filter(function(item) {
@@ -188,24 +293,113 @@ function genererEtiquettes() {
 
         labelsHtml +=
             '<div class="label"><div class="label-top"></div>' +
-            '<div class="label-logo-row"><div class="jonh-badge">JONH</div><sup class="reg">®</sup></div>' +
+            '<div class="label-logo-row"><div class="jonh-badge">JONH</div><sup class="reg">\u00ae</sup></div>' +
             '<div class="label-body">' +
             '<div class="row"><span class="k">Commande :</span><span class="v">' + so.salesorder_number + '</span><span class="k ml">Total items/commande :</span><span class="v">' + totalItems + '</span></div>' +
             '<div class="row"><span class="k">Client :</span><span class="v">' + so.customer_name + '</span></div>' +
-            '<div class="row"><span class="k">Réf. client :</span><span class="v">' + (so.reference_number || '') + '</span></div>' +
+            '<div class="row"><span class="k">R\u00e9f. client :</span><span class="v">' + (so.reference_number || '') + '</span></div>' +
             '<div class="row"><span class="k">Sous-PO :</span><span class="v">' + (so.notes || '') + '</span></div>' +
             '<div class="row"><span class="k">Item :</span><span class="v item-v">' + itemName + '</span></div>' +
             (options ? '<div class="row"><span class="k">Options :</span><span class="v">' + options + '</span></div>' : '') +
             '</div>' +
             '<div class="label-footer">' +
             '<div class="flags"><span><b>Logo :</b> ' + logo + '</span><span><b>Clips :</b> ' + clips + '</span><span><b>Vernis :</b> ' + vernis + '</span></div>' +
-            '<div class="made">Fabriqué au Canada / Made in Canada</div>' +
+            '<div class="made">Fabriqu\u00e9 au Canada / Made in Canada</div>' +
             '<div class="nbitem">Nb item: 1</div>' +
             '</div></div>';
     });
 
+    return { html: labelsHtml, count: items.length, soNumber: so.salesorder_number };
+}
+
+function buildFullDocument(labelsHtml, title, withAutoPrint) {
+    var autoPrintScript = withAutoPrint
+        ? '<scr' + 'ipt>window.onload=function(){window.print()};<\/scr' + 'ipt>'
+        : '';
+    return '<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>' + title + '</title>' +
+        '<style>@page{size:4in 2.875in;margin:0}*{margin:0;padding:0;box-sizing:border-box}' +
+        'body{font-family:Arial,sans-serif;background:white}' +
+        '.label{width:4in;height:2.875in;page-break-after:always;display:flex;flex-direction:column;position:relative;border:1px solid #ccc;overflow:hidden}' +
+        '.label-top{height:6px;background:#6B8C3E;flex-shrink:0}' +
+        '.label-logo-row{display:flex;align-items:center;padding:7px 12px 3px;flex-shrink:0}' +
+        '.jonh-badge{background:#6B8C3E;color:white;font-weight:900;font-size:19pt;letter-spacing:2px;padding:3px 12px;border-radius:5px;line-height:1}' +
+        '.reg{font-size:8pt;color:#6B8C3E;margin-left:2px;align-self:flex-start;margin-top:2px}' +
+        '.label-body{flex:1;padding:2px 12px 0;overflow:hidden}' +
+        '.row{display:flex;align-items:baseline;flex-wrap:wrap;gap:3px;margin-bottom:2px}' +
+        '.k{font-weight:700;font-size:7.5pt;white-space:nowrap;flex-shrink:0}' +
+        '.v{font-size:7.5pt;word-break:break-word}' +
+        '.item-v{font-weight:600;font-size:7pt}' +
+        '.ml{margin-left:auto}' +
+        '.label-footer{padding:3px 12px 5px;border-top:1px solid #ddd;flex-shrink:0;position:relative}' +
+        '.flags{display:flex;gap:12px;font-size:7.5pt;margin-bottom:1px}' +
+        '.flags b{font-weight:700}' +
+        '.made{font-size:6.5pt;color:#555;font-style:italic}' +
+        '.nbitem{position:absolute;bottom:5px;right:12px;font-size:7.5pt;font-weight:700}' +
+        '@media print{.label{border:none}}</style>' +
+        '</head><body>' + labelsHtml + autoPrintScript + '</body></html>';
+}
+
+// ============================================================
+// IMPRESSION VIA QZ TRAY (bouton principal)
+// ============================================================
+function imprimerQZ() {
+    if (!qzConnected) {
+        alert('QZ Tray n\'est pas connect\u00e9. V\u00e9rifiez la barre de statut en haut de la page.');
+        return;
+    }
+
+    var built = buildLabelsHtml();
+    if (!built) return;
+
+    var btn = document.getElementById('btnQZ');
+    var originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>Impression...';
+
+    // Document HTML complet SANS auto-print (QZ Tray gère l'impression)
+    var fullHtml = buildFullDocument(built.html, 'Etiquettes ' + built.soNumber, false);
+
+    // Configuration QZ Tray pour impression pixel
+    var config = qz.configs.create(PRINTER_NAME, {
+        size: { width: 4, height: 2.875 },
+        units: 'in',
+        margins: 0,
+        orientation: 'portrait',
+        rasterize: true,       // rendu en image pour préserver le layout
+        density: 203           // 203 DPI typique des Zebra
+    });
+
+    var printData = [{
+        type: 'pixel',
+        format: 'html',
+        flavor: 'plain',
+        data: fullHtml
+    }];
+
+    qz.print(config, printData)
+    .then(function() {
+        showStatus('searchStatus', 'success', '\u2705 ' + built.count + ' \u00e9tiquette(s) envoy\u00e9e(s) \u00e0 ' + PRINTER_NAME + '.');
+    })
+    .catch(function(err) {
+        console.error('Erreur impression:', err);
+        showStatus('searchStatus', 'error', '\u274c Erreur d\'impression : ' + (err.message || err));
+    })
+    .finally(function() {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    });
+}
+
+// ============================================================
+// APERÇU NAVIGATEUR (ancien bouton, gardé en fallback)
+// ============================================================
+function genererEtiquettes() {
+    var built = buildLabelsHtml();
+    if (!built) return;
+
+    var fullHtml = buildFullDocument(built.html, 'Etiquettes ' + built.soNumber, true);
     var win = window.open('', '_blank');
-    win.document.write('<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Etiquettes ' + so.salesorder_number + '</title><style>@page{size:4in 2.875in;margin:0}*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;background:white}.label{width:4in;height:2.875in;page-break-after:always;display:flex;flex-direction:column;position:relative;border:1px solid #ccc;overflow:hidden}.label-top{height:6px;background:#6B8C3E;flex-shrink:0}.label-logo-row{display:flex;align-items:center;padding:7px 12px 3px;flex-shrink:0}.jonh-badge{background:#6B8C3E;color:white;font-weight:900;font-size:19pt;letter-spacing:2px;padding:3px 12px;border-radius:5px;line-height:1}.reg{font-size:8pt;color:#6B8C3E;margin-left:2px;align-self:flex-start;margin-top:2px}.label-body{flex:1;padding:2px 12px 0;overflow:hidden}.row{display:flex;align-items:baseline;flex-wrap:wrap;gap:3px;margin-bottom:2px}.k{font-weight:700;font-size:7.5pt;white-space:nowrap;flex-shrink:0}.v{font-size:7.5pt;word-break:break-word}.item-v{font-weight:600;font-size:7pt}.ml{margin-left:auto}.label-footer{padding:3px 12px 5px;border-top:1px solid #ddd;flex-shrink:0;position:relative}.flags{display:flex;gap:12px;font-size:7.5pt;margin-bottom:1px}.flags b{font-weight:700}.made{font-size:6.5pt;color:#555;font-style:italic}.nbitem{position:absolute;bottom:5px;right:12px;font-size:7.5pt;font-weight:700}@media print{.label{border:none}}</style></head><body>' + labelsHtml + '<scr' + 'ipt>window.onload=function(){window.print()};<\/scr' + 'ipt></body></html>');
+    win.document.write(fullHtml);
     win.document.close();
 }
 
