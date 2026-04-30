@@ -370,6 +370,83 @@ function isTiroir(item) {
 }
 
 // ============================================================
+// PARSING DIMENSIONS TIROIR (pour le tri)
+// Format: "... = HAUTEUR X LARGEUR L X PROFONDEUR P -..."
+// Ex: "4551TC06 - MER NAT - TC 5/8 = 6 X 17 7/8 L X 22P -C30..."
+//     → hauteur=6, largeur=17.875, profondeur=22
+// ============================================================
+function fractionToDecimal(str) {
+    // "17 7/8" → 17.875, "5/8" → 0.625, "22" → 22
+    if (!str) return NaN;
+    str = String(str).trim();
+    // Cas avec espace : "17 7/8"
+    var match = str.match(/^(\d+)\s+(\d+)\/(\d+)$/);
+    if (match) {
+        return parseInt(match[1]) + parseInt(match[2]) / parseInt(match[3]);
+    }
+    // Cas fraction seule : "5/8"
+    match = str.match(/^(\d+)\/(\d+)$/);
+    if (match) {
+        return parseInt(match[1]) / parseInt(match[2]);
+    }
+    // Cas entier : "22"
+    return parseFloat(str);
+}
+
+function parseTiroirDimensions(desc) {
+    if (!desc) return null;
+    // Regex flexible : nombre (entier ou avec fraction "X X/Y") séparé par X
+    // Captures : (1) hauteur, (2) largeur, (3) profondeur
+    var pattern = /=\s*(\d+(?:\s+\d+\/\d+)?(?:\/\d+)?)\s*X\s*(\d+(?:\s+\d+\/\d+)?(?:\/\d+)?)\s*L\s*X\s*(\d+(?:\s+\d+\/\d+)?(?:\/\d+)?)\s*P/i;
+    var m = desc.match(pattern);
+    if (!m) return null;
+    var h = fractionToDecimal(m[1]);
+    var l = fractionToDecimal(m[2]);
+    var p = fractionToDecimal(m[3]);
+    if (isNaN(h) || isNaN(l) || isNaN(p)) return null;
+    return { hauteur: h, largeur: l, profondeur: p };
+}
+
+// Trie les line_items : tiroirs entre eux par profondeur, largeur, hauteur croissants.
+// Les autres lignes (non-tiroir, marqueurs) gardent leur ordre relatif.
+// Retourne une nouvelle liste avec un champ _origIndex pour pouvoir matcher checkboxes/inputs.
+function getSortedLineItems(line_items) {
+    // On ajoute un index original pour conserver le mapping avec les inputs DOM
+    var indexed = line_items.map(function(item, i) {
+        return { item: item, origIndex: i };
+    });
+
+    // Si tous les items non-marqueurs sont des tiroirs, on trie tout (avec marqueurs à leur place relative)
+    // Sinon on garde l'ordre original
+    var nonMarqueurs = indexed.filter(function(x) { return !isMarqueur(x.item); });
+    var allTiroirs = nonMarqueurs.length > 0 && nonMarqueurs.every(function(x) { return isTiroir(x.item); });
+
+    if (!allTiroirs) {
+        return indexed; // ordre original
+    }
+
+    // Toutes les lignes utiles sont des tiroirs : on les trie
+    // Les marqueurs sont laissés en place (au début généralement)
+    var marqueurs = indexed.filter(function(x) { return isMarqueur(x.item); });
+    var tiroirs = indexed.filter(function(x) { return !isMarqueur(x.item); });
+
+    tiroirs.sort(function(a, b) {
+        var dimA = parseTiroirDimensions(a.item.description || '');
+        var dimB = parseTiroirDimensions(b.item.description || '');
+        // Si une dimension n'est pas parsable, on la met à la fin
+        if (!dimA && !dimB) return 0;
+        if (!dimA) return 1;
+        if (!dimB) return -1;
+        // Tri : profondeur, largeur, hauteur (croissant)
+        if (dimA.profondeur !== dimB.profondeur) return dimA.profondeur - dimB.profondeur;
+        if (dimA.largeur !== dimB.largeur) return dimA.largeur - dimB.largeur;
+        return dimA.hauteur - dimB.hauteur;
+    });
+
+    return marqueurs.concat(tiroirs);
+}
+
+// ============================================================
 // AFFICHAGE
 // ============================================================
 function afficherCommandes(orders) {
@@ -413,7 +490,11 @@ function buildOrderCard(so, orderIdx) {
         '<th style="width:90px;">Qté étiq.</th>' +
         '</tr></thead><tbody>';
 
-    so.line_items.forEach(function(item, lineIdx) {
+    var sortedItems = getSortedLineItems(so.line_items);
+
+    sortedItems.forEach(function(entry) {
+        var item = entry.item;
+        var lineIdx = entry.origIndex;
         if (isMarqueur(item)) return;
         var desc = item.description || '';
         var qty = parseInt(item.quantity) || 1;
@@ -508,8 +589,11 @@ function buildLabelsForOrder(so, orderIdx) {
     });
 
     var labelsHtml = '', labelCount = 0;
+    var sortedItems = getSortedLineItems(so.line_items);
 
-    so.line_items.forEach(function(item, lineIdx) {
+    sortedItems.forEach(function(entry) {
+        var item = entry.item;
+        var lineIdx = entry.origIndex;
         if (isMarqueur(item)) return;
 
         var checkbox = document.querySelector('.item-check[data-order="' + orderIdx + '"][data-line="' + lineIdx + '"]');
