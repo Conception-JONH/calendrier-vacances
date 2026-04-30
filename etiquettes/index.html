@@ -163,10 +163,16 @@ input[type="checkbox"] { width: 15px; height: 15px; accent-color: #6B8C3E; curso
             <button class="btn btn-green" onclick="chercherSeule()" id="btnSeule">Charger</button>
         </div>
         <div class="search-row">
-            <label>Plage :</label>
-            <input type="text" id="fromSO" placeholder="De (ex: 165200)" />
-            <input type="text" id="toSO" placeholder="À (ex: 165210)" onkeydown="if(event.key==='Enter') chercherPlage()" />
-            <button class="btn btn-blue" onclick="chercherPlage()" id="btnPlage">Charger lot</button>
+            <label>Plage <span class="tag tag-tiroir">Tiroirs</span> :</label>
+            <input type="text" id="fromSOTiroir" placeholder="De (ex: 165200)" />
+            <input type="text" id="toSOTiroir" placeholder="À (ex: 165210)" onkeydown="if(event.key==='Enter') chercherPlage('tiroir')" />
+            <button class="btn btn-green" onclick="chercherPlage('tiroir')" id="btnPlageTiroir">Charger lot tiroirs</button>
+        </div>
+        <div class="search-row">
+            <label>Plage <span class="tag tag-simple">Autre</span> :</label>
+            <input type="text" id="fromSOAutre" placeholder="De (ex: 165200)" />
+            <input type="text" id="toSOAutre" placeholder="À (ex: 165210)" onkeydown="if(event.key==='Enter') chercherPlage('autre')" />
+            <button class="btn" style="background:#E67E22;color:white;" onclick="chercherPlage('autre')" id="btnPlageAutre">Charger lot autres</button>
         </div>
     </div>
 
@@ -223,6 +229,7 @@ window.addEventListener('load', function() {
     var soNum = getQueryParam('so');
     var soFrom = getQueryParam('so_from');
     var soTo = getQueryParam('so_to');
+    var typeParam = getQueryParam('type'); // 'tiroir' ou 'autre'
 
     if (soId) {
         document.getElementById('searchBox').style.display = 'none';
@@ -231,9 +238,11 @@ window.addEventListener('load', function() {
         document.getElementById('singleSO').value = soNum;
         chercherSeule();
     } else if (soFrom && soTo) {
-        document.getElementById('fromSO').value = soFrom;
-        document.getElementById('toSO').value = soTo;
-        chercherPlage();
+        var typeFilter = (typeParam === 'autre') ? 'autre' : 'tiroir';
+        var prefix = typeFilter === 'tiroir' ? 'Tiroir' : 'Autre';
+        document.getElementById('fromSO' + prefix).value = soFrom;
+        document.getElementById('toSO' + prefix).value = soTo;
+        chercherPlage(typeFilter);
     }
 });
 
@@ -241,6 +250,7 @@ window.addEventListener('load', function() {
 // CHARGEMENT D'UNE COMMANDE PAR ID
 // ============================================================
 function chargerParId(soId) {
+    window._currentTypeFilter = null; // pas de filtre, montrer tout
     showStatus('info', '<span class="spinner-dark"></span>Chargement de la commande...');
 
     return fetch(PROXY + '/inventory/salesorders/' + soId)
@@ -258,6 +268,7 @@ function chargerParId(soId) {
 // RECHERCHE PAR NUMÉRO HUMAIN
 // ============================================================
 function chercherSeule() {
+    window._currentTypeFilter = null; // pas de filtre, montrer tout
     var soNum = document.getElementById('singleSO').value.trim();
     if (!soNum) { showStatus('error', 'Entrez un numéro de commande.'); return; }
 
@@ -286,11 +297,13 @@ function chercherSeule() {
 }
 
 // ============================================================
-// MODE LOT
+// MODE LOT — avec filtre par type (tiroir ou autre)
 // ============================================================
-function chercherPlage() {
-    var fromInput = document.getElementById('fromSO').value.trim();
-    var toInput = document.getElementById('toSO').value.trim();
+function chercherPlage(typeFilter) {
+    // typeFilter : 'tiroir' ou 'autre'
+    var prefix = typeFilter === 'tiroir' ? 'Tiroir' : 'Autre';
+    var fromInput = document.getElementById('fromSO' + prefix).value.trim();
+    var toInput = document.getElementById('toSO' + prefix).value.trim();
     if (!fromInput || !toInput) { showStatus('error', 'Entrez les deux numéros (de / à).'); return; }
 
     var from = parseInt(fromInput);
@@ -299,7 +312,9 @@ function chercherPlage() {
     if (from > to) { var tmp = from; from = to; to = tmp; }
     if ((to - from) > 50) { showStatus('error', 'Plage trop grande (max 50 commandes).'); return; }
 
-    var btn = document.getElementById('btnPlage');
+    var btnId = typeFilter === 'tiroir' ? 'btnPlageTiroir' : 'btnPlageAutre';
+    var btnLabel = typeFilter === 'tiroir' ? 'Charger lot tiroirs' : 'Charger lot autres';
+    var btn = document.getElementById(btnId);
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner"></span>Chargement...';
     document.getElementById('ordersContainer').innerHTML = '';
@@ -326,15 +341,33 @@ function chercherPlage() {
 
     Promise.all(promises).then(function(results) {
         var validOrders = results.filter(function(o) { return o !== null; });
-        if (validOrders.length === 0) {
-            showStatus('error', '❌ Aucune commande trouvée dans la plage.');
+
+        // FILTRAGE PAR TYPE
+        var filteredOrders = validOrders.filter(function(so) {
+            // Vérifier qu'au moins une ligne (non-marqueur) correspond au type voulu
+            return so.line_items.some(function(item) {
+                if (isMarqueur(item)) return false;
+                if (typeFilter === 'tiroir') return isTiroir(item);
+                return !isTiroir(item); // type 'autre'
+            });
+        });
+
+        if (filteredOrders.length === 0) {
+            var msg = typeFilter === 'tiroir'
+                ? '❌ Aucune commande de tiroirs trouvée dans la plage.'
+                : '❌ Aucune commande avec articles non-tiroirs trouvée dans la plage.';
+            showStatus('error', msg);
         } else {
-            afficherCommandes(validOrders);
+            // Mémoriser le filtre pour que afficherCommandes/buildOrderCard masquent les lignes du mauvais type
+            window._currentTypeFilter = typeFilter;
+            afficherCommandes(filteredOrders);
+            var typeLabel = typeFilter === 'tiroir' ? 'tiroirs' : 'autres articles';
+            showStatus('success', '✅ ' + filteredOrders.length + ' commande(s) avec ' + typeLabel + ' trouvée(s) sur ' + validOrders.length + ' commande(s) chargée(s).');
         }
     })
     .finally(function() {
         btn.disabled = false;
-        btn.innerHTML = 'Charger lot';
+        btn.innerHTML = btnLabel;
     });
 }
 
@@ -491,15 +524,21 @@ function buildOrderCard(so, orderIdx) {
         '</tr></thead><tbody>';
 
     var sortedItems = getSortedLineItems(so.line_items);
+    var typeFilter = window._currentTypeFilter; // 'tiroir', 'autre', ou null
 
     sortedItems.forEach(function(entry) {
         var item = entry.item;
         var lineIdx = entry.origIndex;
         if (isMarqueur(item)) return;
+        var tiroir = isTiroir(item);
+
+        // Appliquer le filtre par type si actif
+        if (typeFilter === 'tiroir' && !tiroir) return;
+        if (typeFilter === 'autre' && tiroir) return;
+
         var desc = item.description || '';
         var qty = parseInt(item.quantity) || 1;
         var hasDessin = desc.toLowerCase().indexOf('dessin') >= 0;
-        var tiroir = isTiroir(item);
 
         // Pour tiroir : valeur par défaut = qté ligne
         // Pour autre : vide (force la saisie)
@@ -590,11 +629,17 @@ function buildLabelsForOrder(so, orderIdx) {
 
     var labelsHtml = '', labelCount = 0;
     var sortedItems = getSortedLineItems(so.line_items);
+    var typeFilter = window._currentTypeFilter;
 
     sortedItems.forEach(function(entry) {
         var item = entry.item;
         var lineIdx = entry.origIndex;
         if (isMarqueur(item)) return;
+
+        // Appliquer le filtre par type si actif
+        var tiroir = isTiroir(item);
+        if (typeFilter === 'tiroir' && !tiroir) return;
+        if (typeFilter === 'autre' && tiroir) return;
 
         var checkbox = document.querySelector('.item-check[data-order="' + orderIdx + '"][data-line="' + lineIdx + '"]');
         if (!checkbox || !checkbox.checked) return;
