@@ -4,79 +4,223 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Étiquettes JONH — Zoho Inventory</title>
-<link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: 'Lato', Arial, sans-serif; background: #F5F7FA; padding: 40px 20px; min-height: 100vh; }
-.container { max-width: 850px; margin: 0 auto; background: white; border-radius: 6px; box-shadow: 0 1px 4px rgba(0,0,0,0.12); padding: 36px; }
-.header { display: flex; align-items: center; gap: 14px; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 2px solid #6B8C3E; }
-.jonh-badge { background: #6B8C3E; color: white; font-weight: 900; font-size: 22px; letter-spacing: 2px; padding: 8px 16px; border-radius: 5px; line-height: 1; }
-.header-text h1 { font-size: 20px; font-weight: 700; color: #2C3E50; }
-.header-text p  { font-size: 13px; color: #95A5A6; margin-top: 2px; }
-.search-box { background: #F8F9FC; border: 1px solid #E5E9F2; border-radius: 6px; padding: 18px; margin-bottom: 20px; }
-.search-box h3 { font-size: 13px; font-weight: 700; color: #5A6C7D; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
-.search-row { display: flex; gap: 10px; margin-bottom: 8px; align-items: center; flex-wrap: wrap; }
-.search-row label { font-weight: 600; font-size: 13px; color: #5A6C7D; min-width: 60px; }
-.search-row input { flex: 1; padding: 10px 14px; border: 1px solid #D1D9E6; border-radius: 4px; font-size: 14px; font-family: 'Lato', sans-serif; color: #2C3E50; min-width: 100px; }
-.search-row input:focus { outline: none; border-color: #6B8C3E; }
-.btn { padding: 10px 18px; font-size: 13px; font-weight: 700; font-family: 'Lato', sans-serif; border: none; border-radius: 4px; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
-.btn:disabled { opacity: 0.6; cursor: not-allowed; }
-.btn-green { background: #6B8C3E; color: white; }
-.btn-green:hover:not(:disabled) { background: #587530; }
-.btn-blue { background: #4A90E2; color: white; }
-.btn-blue:hover:not(:disabled) { background: #357ABD; }
-.btn-grey { background: #E5E9F2; color: #5A6C7D; }
-.status { padding: 12px 16px; border-radius: 4px; font-size: 13px; margin-top: 10px; }
-.status.success { background: #DFF0D8; color: #3C763D; border: 1px solid #D6E9C6; }
-.status.error   { background: #FDECEA; color: #B94A48; border: 1px solid #F5C6CB; }
-.status.info    { background: #D9EDF7; color: #31708F; border: 1px solid #BCE8F1; }
-.order-card { margin-top: 18px; border: 1px solid #E5E9F2; border-radius: 6px; overflow: hidden; }
-.order-card-header { background: #6B8C3E; color: white; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; }
-.order-num { font-size: 16px; font-weight: 900; }
-.order-meta { font-size: 12px; opacity: 0.85; margin-top: 2px; }
-.order-count { background: rgba(255,255,255,0.25); border-radius: 20px; padding: 4px 12px; font-size: 12px; font-weight: 700; }
+
+:root {
+    --bg: #F4F6F8;
+    --surface: #FFFFFF;
+    --border: #E1E5EA;
+    --border-strong: #CAD1D9;
+    --text: #1F2A37;
+    --text-muted: #5A6675;
+    --text-faint: #8A95A3;
+    --primary: #2D5A3D;
+    --primary-hover: #224830;
+    --primary-soft: #E8F0EA;
+    --secondary: #2C3E50;
+    --secondary-hover: #1F2D3A;
+    --accent: #B8722B;
+    --accent-hover: #9B5F22;
+    --accent-soft: #FBF1E5;
+    --success: #2D5A3D;
+    --error: #B23B3B;
+    --info: #1E5A8A;
+    --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
+    --shadow-md: 0 1px 3px rgba(15, 23, 42, 0.08), 0 4px 12px rgba(15, 23, 42, 0.04);
+    --radius-sm: 4px;
+    --radius-md: 6px;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding: 32px 20px;
+    min-height: 100vh;
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+}
+
+.container {
+    max-width: 920px;
+    margin: 0 auto;
+    background: var(--surface);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--border);
+    overflow: hidden;
+}
+
+.header {
+    padding: 24px 32px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+}
+.header-title { font-size: 18px; font-weight: 600; color: var(--text); letter-spacing: -0.01em; }
+.header-subtitle { font-size: 13px; color: var(--text-muted); margin-top: 2px; font-weight: 400; }
+
+.section { padding: 24px 32px; border-bottom: 1px solid var(--border); }
+.section:last-of-type { border-bottom: none; }
+
+.section-title {
+    font-size: 11px; font-weight: 600; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 16px;
+}
+
+.search-row { display: flex; gap: 10px; margin-bottom: 12px; align-items: center; flex-wrap: wrap; }
+.search-row:last-child { margin-bottom: 0; }
+.search-row label {
+    font-weight: 500; font-size: 13px; color: var(--text);
+    min-width: 110px; display: flex; align-items: center; gap: 8px;
+}
+
+.input {
+    flex: 1; padding: 9px 12px;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    font-size: 14px; font-family: inherit;
+    color: var(--text); background: var(--surface);
+    min-width: 110px;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+.input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(45, 90, 61, 0.12); }
+.input::placeholder { color: var(--text-faint); }
+
+.btn {
+    padding: 9px 16px; font-size: 13px; font-weight: 500; font-family: inherit;
+    border: 1px solid transparent; border-radius: var(--radius-sm);
+    cursor: pointer; transition: all 0.15s; white-space: nowrap; line-height: 1.4;
+}
+.btn:disabled { opacity: 0.55; cursor: not-allowed; }
+.btn-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+.btn-primary:hover:not(:disabled) { background: var(--primary-hover); border-color: var(--primary-hover); }
+.btn-secondary { background: var(--secondary); color: #fff; border-color: var(--secondary); }
+.btn-secondary:hover:not(:disabled) { background: var(--secondary-hover); border-color: var(--secondary-hover); }
+.btn-accent { background: var(--accent); color: #fff; border-color: var(--accent); }
+.btn-accent:hover:not(:disabled) { background: var(--accent-hover); border-color: var(--accent-hover); }
+.btn-ghost { background: var(--surface); color: var(--text-muted); border-color: var(--border-strong); }
+.btn-ghost:hover:not(:disabled) { background: var(--bg); color: var(--text); }
+
+.status {
+    padding: 11px 14px; border-radius: var(--radius-sm);
+    font-size: 13px; margin: 0 32px 20px;
+    border: 1px solid; display: flex; align-items: center; gap: 8px;
+}
+.status.success { background: #EFF7F1; color: var(--success); border-color: #C8DDCC; }
+.status.error   { background: #FBEDED; color: var(--error);   border-color: #E8C5C5; }
+.status.info    { background: #EDF3F8; color: var(--info);    border-color: #C7D8E5; }
+
+#ordersContainer { padding: 0 32px; }
+#ordersContainer:not(:empty) { padding-top: 8px; padding-bottom: 8px; }
+
+.order-card {
+    margin-bottom: 16px; border: 1px solid var(--border);
+    border-radius: var(--radius-md); overflow: hidden; background: var(--surface);
+}
+.order-card-header {
+    background: var(--secondary); color: #fff; padding: 14px 20px;
+    display: flex; justify-content: space-between; align-items: center; gap: 12px;
+}
+.order-num { font-size: 14px; font-weight: 600; }
+.order-meta { font-size: 12px; color: rgba(255,255,255,0.75); margin-top: 2px; font-weight: 400; }
+.order-count {
+    background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 4px; padding: 4px 10px; font-size: 12px; font-weight: 500; flex-shrink: 0;
+}
+
 .items-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-.items-table th { padding: 8px 12px; background: #F0F3F0; color: #5A6C7D; font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; text-align: left; }
-.items-table td { padding: 9px 12px; border-bottom: 1px solid #F0F3F0; color: #2C3E50; vertical-align: top; }
+.items-table th {
+    padding: 10px 14px; background: var(--bg); color: var(--text-muted);
+    font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em;
+    text-align: left; border-bottom: 1px solid var(--border);
+}
+.items-table td { padding: 11px 14px; border-bottom: 1px solid var(--border); color: var(--text); vertical-align: top; }
 .items-table tr:last-child td { border-bottom: none; }
-.items-table tr.tiroir-row td { background: #F4F8EE; }
-.items-table tr.tiroir-row:hover td { background: #EAF2DD; }
-.items-table tr.simple-row td { background: #FFFAF0; }
-.items-table tr.simple-row:hover td { background: #FFF3DC; }
-.item-name { font-weight: 600; font-size: 12px; }
-.item-dessin { font-size: 11px; color: #6B8C3E; font-weight: 700; margin-top: 2px; }
-.tag { display: inline-block; padding: 2px 7px; border-radius: 3px; font-size: 10px; font-weight: 700; margin-right: 6px; vertical-align: middle; text-transform: uppercase; letter-spacing: 0.3px; }
-.tag-tiroir { background: #6B8C3E; color: white; }
-.tag-simple { background: #E67E22; color: white; }
-input[type="checkbox"] { width: 15px; height: 15px; accent-color: #6B8C3E; cursor: pointer; }
-.qte-input { width: 60px; padding: 5px 7px; border: 1px solid #D1D9E6; border-radius: 3px; font-size: 13px; text-align: center; font-family: 'Lato', sans-serif; font-weight: 600; }
-.qte-input:focus { outline: none; border-color: #6B8C3E; box-shadow: 0 0 0 2px rgba(107,140,62,0.15); }
-.qte-input.qte-simple { border-color: #E67E22; background: #FFF; }
-.qte-input.qte-simple:focus { border-color: #CA6F1E; box-shadow: 0 0 0 2px rgba(230,126,34,0.2); }
-.qte-input.qte-simple::placeholder { color: #E67E22; opacity: 0.6; font-weight: 700; }
-.action-bar { padding: 14px 18px; background: #F8F9FC; border-top: 1px solid #E5E9F2; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; position: sticky; bottom: 0; z-index: 10; }
-.legend { padding: 10px 14px; background: #F8F9FC; border: 1px solid #E5E9F2; border-radius: 4px; font-size: 11px; color: #5A6C7D; margin-top: 12px; display: flex; gap: 16px; flex-wrap: wrap; }
-.spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.4); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; margin-right: 6px; vertical-align: middle; }
-.spinner-dark { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(0,0,0,0.1); border-top-color: #6B8C3E; border-radius: 50%; animation: spin 0.7s linear infinite; margin-right: 6px; vertical-align: middle; }
+.items-table tr.tiroir-row td { background: rgba(45, 90, 61, 0.025); }
+.items-table tr.tiroir-row:hover td { background: rgba(45, 90, 61, 0.06); }
+.items-table tr.simple-row td { background: rgba(184, 114, 43, 0.03); }
+.items-table tr.simple-row:hover td { background: rgba(184, 114, 43, 0.07); }
+
+.item-name { font-weight: 500; font-size: 13px; line-height: 1.45; }
+.item-dessin {
+    display: inline-block; font-size: 10px; color: var(--accent); font-weight: 600;
+    margin-top: 4px; padding: 2px 7px; background: var(--accent-soft);
+    border-radius: 3px; text-transform: uppercase; letter-spacing: 0.04em;
+}
+
+.tag {
+    display: inline-block; padding: 3px 8px; border-radius: 3px;
+    font-size: 10px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.06em; line-height: 1.4; border: 1px solid transparent;
+}
+.tag-tiroir { background: var(--primary-soft); color: var(--primary); border-color: rgba(45,90,61,0.18); }
+.tag-simple { background: var(--accent-soft);  color: var(--accent);  border-color: rgba(184,114,43,0.2); }
+
+input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--primary); cursor: pointer; }
+
+.qte-input {
+    width: 64px; padding: 6px 8px;
+    border: 1px solid var(--border-strong); border-radius: var(--radius-sm);
+    font-size: 13px; text-align: center; font-family: inherit; font-weight: 500;
+    background: var(--surface); transition: border-color 0.15s, box-shadow 0.15s;
+}
+.qte-input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px rgba(45, 90, 61, 0.15); }
+.qte-input.qte-simple { border-color: var(--accent); }
+.qte-input.qte-simple:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(184,114,43,0.18); }
+.qte-input.qte-simple::placeholder { color: var(--accent); opacity: 0.55; font-weight: 600; }
+
+.action-bar {
+    padding: 16px 32px; background: var(--bg); border-top: 1px solid var(--border);
+    display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+    position: sticky; bottom: 0; z-index: 10;
+}
+.action-bar .btn-primary { flex: 1; min-width: 200px; }
+
+.legend {
+    padding: 14px 20px; background: var(--bg); border-top: 1px solid var(--border);
+    font-size: 12px; color: var(--text-muted);
+    display: flex; gap: 24px; flex-wrap: wrap; align-items: center;
+}
+.legend > div { display: flex; align-items: center; gap: 8px; }
+
+.spinner {
+    display: inline-block; width: 13px; height: 13px;
+    border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff;
+    border-radius: 50%; animation: spin 0.7s linear infinite;
+    margin-right: 7px; vertical-align: -2px;
+}
+.spinner-dark {
+    display: inline-block; width: 13px; height: 13px;
+    border: 2px solid rgba(45,90,61,0.18); border-top-color: var(--primary);
+    border-radius: 50%; animation: spin 0.7s linear infinite;
+    margin-right: 7px; vertical-align: -2px;
+}
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* ============================================================
-   APERÇU À L'ÉCRAN (avant impression)
-   ============================================================ */
+.apercu-section { padding: 24px 32px; border-top: 1px solid var(--border); background: var(--bg); }
+.apercu-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 20px; gap: 12px; flex-wrap: wrap;
+}
+.apercu-header h2 { font-size: 15px; font-weight: 600; color: var(--text); letter-spacing: -0.01em; }
+.apercu-header h2 .total-count { color: var(--text-muted); font-weight: 400; margin-left: 6px; }
+.apercu-actions { display: flex; gap: 8px; }
+
+.apercu-num {
+    text-align: center; font-size: 11px; color: var(--text-faint);
+    margin-bottom: 6px; font-weight: 500; letter-spacing: 0.02em;
+}
+
 .apercu-label {
-    width: 4in;
-    height: 2.875in;
-    border: 1px dashed #B0B7C0;
-    background: white;
+    width: 4in; height: 2.875in;
+    border: 1px dashed var(--border-strong); background: white;
     margin: 0 auto 18px;
-    display: flex;
-    flex-direction: column;
-    position: relative;
-    overflow: hidden;
-    padding-top: 0.75in;
-    font-family: Arial, sans-serif;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-    border-radius: 3px;
+    display: flex; flex-direction: column; position: relative; overflow: hidden;
+    padding-top: 0.75in; font-family: Arial, sans-serif;
+    box-shadow: var(--shadow-sm); border-radius: 3px;
 }
 .apercu-label .label-body { flex: 1; padding: 4px 14px 0; overflow: hidden; }
 .apercu-label .row { display: flex; align-items: baseline; flex-wrap: wrap; gap: 5px; margin-bottom: 4px; }
@@ -93,11 +237,7 @@ input[type="checkbox"] { width: 15px; height: 15px; accent-color: #6B8C3E; curso
 .apercu-label .flags b { font-weight: 700; }
 .apercu-label .made { font-size: 8pt; color: #555; font-style: italic; }
 .apercu-label .nbitem { position: absolute; bottom: 6px; right: 14px; font-size: 9pt; font-weight: 700; }
-.apercu-num { text-align: center; font-size: 11px; color: #95A5A6; margin-bottom: 6px; font-weight: 700; }
 
-/* ============================================================
-   STYLES IMPRESSION (4" x 2.875" Zebra)
-   ============================================================ */
 .print-area { display: none; }
 
 @media print {
@@ -107,24 +247,13 @@ input[type="checkbox"] { width: 15px; height: 15px; accent-color: #6B8C3E; curso
     .container { display: none !important; }
 
     @page { size: 4in 2.875in; margin: 0; }
-    html, body {
-        width: 4in;
-        background: white;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-    }
+    html, body { width: 4in; background: white; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     .label {
-        width: 4in;
-        height: 2.875in;
-        page-break-after: always;
-        page-break-inside: avoid;
-        break-inside: avoid;
-        display: flex;
-        flex-direction: column;
-        position: relative;
-        overflow: hidden;
-        padding-top: 0.75in;
-        font-family: Arial, sans-serif;
+        width: 4in; height: 2.875in;
+        page-break-after: always; page-break-inside: avoid; break-inside: avoid;
+        display: flex; flex-direction: column;
+        position: relative; overflow: hidden;
+        padding-top: 0.75in; font-family: Arial, sans-serif;
     }
     .label:last-child { page-break-after: auto; }
     .label-body { flex: 1; padding: 4px 14px 0; overflow: hidden; }
@@ -147,32 +276,33 @@ input[type="checkbox"] { width: 15px; height: 15px; accent-color: #6B8C3E; curso
 </head>
 <body>
 <div class="container">
+
     <div class="header">
-        <div class="jonh-badge">JONH</div>
-        <div class="header-text">
-            <h1>Générateur d'étiquettes</h1>
-            <p>Zoho Inventory — Sales Orders</p>
-        </div>
+        <div class="header-title">Générateur d'étiquettes</div>
+        <div class="header-subtitle">Zoho Inventory — Bons de commande client</div>
     </div>
 
-    <div class="search-box" id="searchBox">
-        <h3>Rechercher des commandes</h3>
+    <div class="section" id="searchBox">
+        <div class="section-title">Rechercher des commandes</div>
+
         <div class="search-row">
-            <label>Une seule :</label>
-            <input type="text" id="singleSO" placeholder="Ex: 165200" onkeydown="if(event.key==='Enter') chercherSeule()" />
-            <button class="btn btn-green" onclick="chercherSeule()" id="btnSeule">Charger</button>
+            <label>Une seule</label>
+            <input type="text" class="input" id="singleSO" placeholder="Numéro de commande (ex. 165200)" onkeydown="if(event.key==='Enter') chercherSeule()" />
+            <button class="btn btn-primary" onclick="chercherSeule()" id="btnSeule">Charger</button>
         </div>
+
         <div class="search-row">
-            <label>Plage <span class="tag tag-tiroir">Tiroirs</span> :</label>
-            <input type="text" id="fromSOTiroir" placeholder="De (ex: 165200)" />
-            <input type="text" id="toSOTiroir" placeholder="À (ex: 165210)" onkeydown="if(event.key==='Enter') chercherPlage('tiroir')" />
-            <button class="btn btn-green" onclick="chercherPlage('tiroir')" id="btnPlageTiroir">Charger lot tiroirs</button>
+            <label>Plage <span class="tag tag-tiroir">Tiroirs</span></label>
+            <input type="text" class="input" id="fromSOTiroir" placeholder="De (ex. 165200)" />
+            <input type="text" class="input" id="toSOTiroir" placeholder="À (ex. 165210)" onkeydown="if(event.key==='Enter') chercherPlage('tiroir')" />
+            <button class="btn btn-primary" onclick="chercherPlage('tiroir')" id="btnPlageTiroir">Charger lot tiroirs</button>
         </div>
+
         <div class="search-row">
-            <label>Plage <span class="tag tag-simple">Autre</span> :</label>
-            <input type="text" id="fromSOAutre" placeholder="De (ex: 165200)" />
-            <input type="text" id="toSOAutre" placeholder="À (ex: 165210)" onkeydown="if(event.key==='Enter') chercherPlage('autre')" />
-            <button class="btn" style="background:#E67E22;color:white;" onclick="chercherPlage('autre')" id="btnPlageAutre">Charger lot autres</button>
+            <label>Plage <span class="tag tag-simple">Autres</span></label>
+            <input type="text" class="input" id="fromSOAutre" placeholder="De (ex. 165200)" />
+            <input type="text" class="input" id="toSOAutre" placeholder="À (ex. 165210)" onkeydown="if(event.key==='Enter') chercherPlage('autre')" />
+            <button class="btn btn-accent" onclick="chercherPlage('autre')" id="btnPlageAutre">Charger lot autres</button>
         </div>
     </div>
 
@@ -180,45 +310,50 @@ input[type="checkbox"] { width: 15px; height: 15px; accent-color: #6B8C3E; curso
 
     <div id="ordersContainer"></div>
 
-    <div class="action-bar" id="globalActions" style="display:none; margin-top:20px;">
-        <button class="btn btn-green" onclick="genererApercu()" style="flex:1;" id="btnApercu">👁️ Générer l'aperçu des étiquettes</button>
-        <button class="btn btn-blue" onclick="toutSelectionner()">Tout sélect.</button>
-        <button class="btn" style="background:#E5E9F2;color:#5A6C7D;" onclick="toutDeselectionner()">Désélectionner</button>
+    <div class="action-bar" id="globalActions" style="display:none;">
+        <button class="btn btn-primary" onclick="genererApercu()" id="btnApercu">Générer l'aperçu des étiquettes</button>
+        <button class="btn btn-secondary" onclick="toutSelectionner()">Tout sélectionner</button>
+        <button class="btn btn-ghost" onclick="toutDeselectionner()">Tout désélectionner</button>
     </div>
 
-    <div id="apercuContainer" style="display:none; margin-top:24px;">
-        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; padding-bottom:10px; border-bottom:2px solid #6B8C3E;">
-            <h2 style="font-size:18px; font-weight:700; color:#2C3E50;">Aperçu des étiquettes <span id="totalCount" style="color:#6B8C3E; font-weight:900;"></span></h2>
-            <div style="display:flex; gap:10px;">
-                <button class="btn" style="background:#E5E9F2;color:#5A6C7D;" onclick="fermerApercu()">↩ Retour</button>
-                <button class="btn btn-green" onclick="imprimerMaintenant()" id="btnPrintNow">🖨️ Imprimer maintenant</button>
+    <div class="legend" id="legendBox" style="display:none;">
+        <div><span class="tag tag-tiroir">Tiroir</span> Quantité pré-remplie automatiquement (modifiable)</div>
+        <div><span class="tag tag-simple">Autre</span> Quantité à entrer manuellement par l'employé</div>
+    </div>
+
+    <div class="apercu-section" id="apercuContainer" style="display:none;">
+        <div class="apercu-header">
+            <h2>Aperçu des étiquettes <span class="total-count" id="totalCount"></span></h2>
+            <div class="apercu-actions">
+                <button class="btn btn-ghost" onclick="fermerApercu()">Retour</button>
+                <button class="btn btn-primary" onclick="imprimerMaintenant()" id="btnPrintNow">Imprimer maintenant</button>
             </div>
         </div>
         <div id="apercuLabels"></div>
     </div>
 
-    <div class="legend" id="legendBox" style="display:none;">
-        <div><span class="tag tag-tiroir">TIROIR</span> Qté pré-remplie automatiquement (modifiable)</div>
-        <div><span class="tag tag-simple">AUTRE</span> Qté à entrer manuellement par l'employé</div>
-    </div>
 </div>
 
 <div class="print-area" id="printArea"></div>
 
 <script>
-// ============================================================
-// CONFIGURATION
-// ============================================================
 var PROXY = 'https://zoho-proxy.conception.workers.dev';
-
-// Le groupe "45" identifie les tiroirs dans Zoho Inventory
 var GROUPE_TIROIR = '45';
-// Le groupe "90" identifie les marqueurs/notes (=#CLIENT, AVISEZ, etc.)
 var GROUPE_MARQUEUR = '90';
 
 // ============================================================
-// AUTO-CHARGEMENT depuis l'URL
+// BUG FIX — Détection LOGO/CLIPS/VERNIS
+// L'ancien code coupait la description au DERNIER " -" et ne
+// cherchait que dans la portion de droite. Si LOGO était au
+// milieu, c'était systématiquement raté. On cherche maintenant
+// dans toute la chaîne avec word-boundary, insensible à la casse.
 // ============================================================
+function hasOption(desc, motCle) {
+    if (!desc) return false;
+    var re = new RegExp('\\b' + motCle + '\\b', 'i');
+    return re.test(desc);
+}
+
 function getQueryParam(name) {
     var match = window.location.search.match(new RegExp('[?&]' + name + '=([^&]*)'));
     return match ? decodeURIComponent(match[1]) : '';
@@ -229,7 +364,7 @@ window.addEventListener('load', function() {
     var soNum = getQueryParam('so');
     var soFrom = getQueryParam('so_from');
     var soTo = getQueryParam('so_to');
-    var typeParam = getQueryParam('type'); // 'tiroir' ou 'autre'
+    var typeParam = getQueryParam('type');
 
     if (soId) {
         document.getElementById('searchBox').style.display = 'none';
@@ -246,11 +381,8 @@ window.addEventListener('load', function() {
     }
 });
 
-// ============================================================
-// CHARGEMENT D'UNE COMMANDE PAR ID
-// ============================================================
 function chargerParId(soId) {
-    window._currentTypeFilter = null; // pas de filtre, montrer tout
+    window._currentTypeFilter = null;
     showStatus('info', '<span class="spinner-dark"></span>Chargement de la commande...');
 
     return fetch(PROXY + '/inventory/salesorders/' + soId)
@@ -260,22 +392,19 @@ function chargerParId(soId) {
         afficherCommandes([detail.salesorder]);
     })
     .catch(function(err) {
-        showStatus('error', '❌ ' + (err.message || JSON.stringify(err)));
+        showStatus('error', (err.message || JSON.stringify(err)));
     });
 }
 
-// ============================================================
-// RECHERCHE PAR NUMÉRO HUMAIN
-// ============================================================
 function chercherSeule() {
-    window._currentTypeFilter = null; // pas de filtre, montrer tout
+    window._currentTypeFilter = null;
     var soNum = document.getElementById('singleSO').value.trim();
     if (!soNum) { showStatus('error', 'Entrez un numéro de commande.'); return; }
 
     var btn = document.getElementById('btnSeule');
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner"></span>Recherche...';
-    showStatus('info', '⏳ Chargement...');
+    showStatus('info', '<span class="spinner-dark"></span>Chargement...');
     document.getElementById('ordersContainer').innerHTML = '';
     document.getElementById('globalActions').style.display = 'none';
     document.getElementById('legendBox').style.display = 'none';
@@ -288,7 +417,7 @@ function chercherSeule() {
         return chargerParId(orders[0].salesorder_id);
     })
     .catch(function(err) {
-        showStatus('error', '❌ ' + (err.message || JSON.stringify(err)));
+        showStatus('error', (err.message || JSON.stringify(err)));
     })
     .finally(function() {
         btn.disabled = false;
@@ -296,11 +425,7 @@ function chercherSeule() {
     });
 }
 
-// ============================================================
-// MODE LOT — avec filtre par type (tiroir ou autre)
-// ============================================================
 function chercherPlage(typeFilter) {
-    // typeFilter : 'tiroir' ou 'autre'
     var prefix = typeFilter === 'tiroir' ? 'Tiroir' : 'Autre';
     var fromInput = document.getElementById('fromSO' + prefix).value.trim();
     var toInput = document.getElementById('toSO' + prefix).value.trim();
@@ -310,7 +435,7 @@ function chercherPlage(typeFilter) {
     var to = parseInt(toInput);
     if (isNaN(from) || isNaN(to)) { showStatus('error', 'Les numéros doivent être des nombres.'); return; }
     if (from > to) { var tmp = from; from = to; to = tmp; }
-    if ((to - from) > 50) { showStatus('error', 'Plage trop grande (max 50 commandes).'); return; }
+    if ((to - from) > 50) { showStatus('error', 'Plage trop grande (maximum 50 commandes).'); return; }
 
     var btnId = typeFilter === 'tiroir' ? 'btnPlageTiroir' : 'btnPlageAutre';
     var btnLabel = typeFilter === 'tiroir' ? 'Charger lot tiroirs' : 'Charger lot autres';
@@ -324,7 +449,7 @@ function chercherPlage(typeFilter) {
     var soNumbers = [];
     for (var i = from; i <= to; i++) soNumbers.push(i);
 
-    showStatus('info', '⏳ Chargement de ' + soNumbers.length + ' commande(s)...');
+    showStatus('info', '<span class="spinner-dark"></span>Chargement de ' + soNumbers.length + ' commande(s)...');
 
     var promises = soNumbers.map(function(num) {
         return fetch(PROXY + '/inventory/salesorders?salesorder_number=' + num)
@@ -341,28 +466,24 @@ function chercherPlage(typeFilter) {
 
     Promise.all(promises).then(function(results) {
         var validOrders = results.filter(function(o) { return o !== null; });
-
-        // FILTRAGE PAR TYPE
         var filteredOrders = validOrders.filter(function(so) {
-            // Vérifier qu'au moins une ligne (non-marqueur) correspond au type voulu
             return so.line_items.some(function(item) {
                 if (isMarqueur(item)) return false;
                 if (typeFilter === 'tiroir') return isTiroir(item);
-                return !isTiroir(item); // type 'autre'
+                return !isTiroir(item);
             });
         });
 
         if (filteredOrders.length === 0) {
             var msg = typeFilter === 'tiroir'
-                ? '❌ Aucune commande de tiroirs trouvée dans la plage.'
-                : '❌ Aucune commande avec articles non-tiroirs trouvée dans la plage.';
+                ? 'Aucune commande de tiroirs trouvée dans la plage.'
+                : 'Aucune commande avec articles non-tiroirs trouvée dans la plage.';
             showStatus('error', msg);
         } else {
-            // Mémoriser le filtre pour que afficherCommandes/buildOrderCard masquent les lignes du mauvais type
             window._currentTypeFilter = typeFilter;
             afficherCommandes(filteredOrders);
             var typeLabel = typeFilter === 'tiroir' ? 'tiroirs' : 'autres articles';
-            showStatus('success', '✅ ' + filteredOrders.length + ' commande(s) avec ' + typeLabel + ' trouvée(s) sur ' + validOrders.length + ' commande(s) chargée(s).');
+            showStatus('success', filteredOrders.length + ' commande(s) avec ' + typeLabel + ' trouvée(s) sur ' + validOrders.length + ' commande(s) chargée(s).');
         }
     })
     .finally(function() {
@@ -371,20 +492,14 @@ function chercherPlage(typeFilter) {
     });
 }
 
-// ============================================================
-// DÉTECTION DU TYPE DE LIGNE
-// ============================================================
 function getGroupe(item) {
-    // Récupère le cf_groupe depuis custom_field_hash ou item_custom_fields
     if (item.custom_field_hash && item.custom_field_hash.cf_groupe !== undefined) {
         return String(item.custom_field_hash.cf_groupe);
     }
     if (item.item_custom_fields) {
         for (var i = 0; i < item.item_custom_fields.length; i++) {
             var cf = item.item_custom_fields[i];
-            if (cf.api_name === 'cf_groupe') {
-                return String(cf.value);
-            }
+            if (cf.api_name === 'cf_groupe') return String(cf.value);
         }
     }
     return '';
@@ -393,43 +508,25 @@ function getGroupe(item) {
 function isMarqueur(item) {
     var desc = item.description || '';
     if (desc.indexOf('=#CLIENT') === 0) return true;
-    if (desc.charCodeAt(0) === 8212) return true; // séparateur ————
+    if (desc.charCodeAt(0) === 8212) return true;
     if (getGroupe(item) === GROUPE_MARQUEUR) return true;
     return false;
 }
 
-function isTiroir(item) {
-    return getGroupe(item) === GROUPE_TIROIR;
-}
+function isTiroir(item) { return getGroupe(item) === GROUPE_TIROIR; }
 
-// ============================================================
-// PARSING DIMENSIONS TIROIR (pour le tri)
-// Format: "... = HAUTEUR X LARGEUR L X PROFONDEUR P -..."
-// Ex: "4551TC06 - MER NAT - TC 5/8 = 6 X 17 7/8 L X 22P -C30..."
-//     → hauteur=6, largeur=17.875, profondeur=22
-// ============================================================
 function fractionToDecimal(str) {
-    // "17 7/8" → 17.875, "5/8" → 0.625, "22" → 22
     if (!str) return NaN;
     str = String(str).trim();
-    // Cas avec espace : "17 7/8"
     var match = str.match(/^(\d+)\s+(\d+)\/(\d+)$/);
-    if (match) {
-        return parseInt(match[1]) + parseInt(match[2]) / parseInt(match[3]);
-    }
-    // Cas fraction seule : "5/8"
+    if (match) return parseInt(match[1]) + parseInt(match[2]) / parseInt(match[3]);
     match = str.match(/^(\d+)\/(\d+)$/);
-    if (match) {
-        return parseInt(match[1]) / parseInt(match[2]);
-    }
-    // Cas entier : "22"
+    if (match) return parseInt(match[1]) / parseInt(match[2]);
     return parseFloat(str);
 }
 
 function parseTiroirDimensions(desc) {
     if (!desc) return null;
-    // Regex flexible : nombre (entier ou avec fraction "X X/Y") séparé par X
-    // Captures : (1) hauteur, (2) largeur, (3) profondeur
     var pattern = /=\s*(\d+(?:\s+\d+\/\d+)?(?:\/\d+)?)\s*X\s*(\d+(?:\s+\d+\/\d+)?(?:\/\d+)?)\s*L\s*X\s*(\d+(?:\s+\d+\/\d+)?(?:\/\d+)?)\s*P/i;
     var m = desc.match(pattern);
     if (!m) return null;
@@ -440,37 +537,22 @@ function parseTiroirDimensions(desc) {
     return { hauteur: h, largeur: l, profondeur: p };
 }
 
-// Trie les line_items : tiroirs entre eux par profondeur, largeur, hauteur croissants.
-// Les autres lignes (non-tiroir, marqueurs) gardent leur ordre relatif.
-// Retourne une nouvelle liste avec un champ _origIndex pour pouvoir matcher checkboxes/inputs.
 function getSortedLineItems(line_items) {
-    // On ajoute un index original pour conserver le mapping avec les inputs DOM
-    var indexed = line_items.map(function(item, i) {
-        return { item: item, origIndex: i };
-    });
-
-    // Si tous les items non-marqueurs sont des tiroirs, on trie tout (avec marqueurs à leur place relative)
-    // Sinon on garde l'ordre original
+    var indexed = line_items.map(function(item, i) { return { item: item, origIndex: i }; });
     var nonMarqueurs = indexed.filter(function(x) { return !isMarqueur(x.item); });
     var allTiroirs = nonMarqueurs.length > 0 && nonMarqueurs.every(function(x) { return isTiroir(x.item); });
 
-    if (!allTiroirs) {
-        return indexed; // ordre original
-    }
+    if (!allTiroirs) return indexed;
 
-    // Toutes les lignes utiles sont des tiroirs : on les trie
-    // Les marqueurs sont laissés en place (au début généralement)
     var marqueurs = indexed.filter(function(x) { return isMarqueur(x.item); });
     var tiroirs = indexed.filter(function(x) { return !isMarqueur(x.item); });
 
     tiroirs.sort(function(a, b) {
         var dimA = parseTiroirDimensions(a.item.description || '');
         var dimB = parseTiroirDimensions(b.item.description || '');
-        // Si une dimension n'est pas parsable, on la met à la fin
         if (!dimA && !dimB) return 0;
         if (!dimA) return 1;
         if (!dimB) return -1;
-        // Tri : profondeur, largeur, hauteur (croissant)
         if (dimA.profondeur !== dimB.profondeur) return dimA.profondeur - dimB.profondeur;
         if (dimA.largeur !== dimB.largeur) return dimA.largeur - dimB.largeur;
         return dimA.hauteur - dimB.hauteur;
@@ -479,9 +561,6 @@ function getSortedLineItems(line_items) {
     return marqueurs.concat(tiroirs);
 }
 
-// ============================================================
-// AFFICHAGE
-// ============================================================
 function afficherCommandes(orders) {
     var container = document.getElementById('ordersContainer');
     container.innerHTML = '';
@@ -496,7 +575,7 @@ function afficherCommandes(orders) {
     if (totalCommandes > 0) {
         document.getElementById('globalActions').style.display = 'flex';
         document.getElementById('legendBox').style.display = 'flex';
-        showStatus('success', '✅ ' + totalCommandes + ' commande(s) chargée(s).');
+        showStatus('success', totalCommandes + ' commande(s) chargée(s).');
     }
 }
 
@@ -512,19 +591,19 @@ function buildOrderCard(so, orderIdx) {
 
     var header = '<div class="order-card-header">' +
         '<div><div class="order-num">Commande ' + so.salesorder_number + '</div>' +
-        '<div class="order-meta">' + escapeHtml(so.customer_name) + (so.reference_number ? '  •  Réf: ' + escapeHtml(so.reference_number) : '') + '</div></div>' +
-        '<div class="order-count">' + nbItems + ' item(s)</div></div>';
+        '<div class="order-meta">' + escapeHtml(so.customer_name) + (so.reference_number ? ' &nbsp;•&nbsp; Réf : ' + escapeHtml(so.reference_number) : '') + '</div></div>' +
+        '<div class="order-count">' + nbItems + ' item' + (nbItems > 1 ? 's' : '') + '</div></div>';
 
     var tableHtml = '<table class="items-table"><thead><tr>' +
-        '<th style="width:36px; text-align:center;">✓</th>' +
+        '<th style="width:40px; text-align:center;">Sél.</th>' +
         '<th style="width:80px;">Type</th>' +
         '<th>Item / Description</th>' +
         '<th style="width:55px;">Qté</th>' +
-        '<th style="width:90px;">Qté étiq.</th>' +
+        '<th style="width:100px;">Qté étiq.</th>' +
         '</tr></thead><tbody>';
 
     var sortedItems = getSortedLineItems(so.line_items);
-    var typeFilter = window._currentTypeFilter; // 'tiroir', 'autre', ou null
+    var typeFilter = window._currentTypeFilter;
 
     sortedItems.forEach(function(entry) {
         var item = entry.item;
@@ -532,7 +611,6 @@ function buildOrderCard(so, orderIdx) {
         if (isMarqueur(item)) return;
         var tiroir = isTiroir(item);
 
-        // Appliquer le filtre par type si actif
         if (typeFilter === 'tiroir' && !tiroir) return;
         if (typeFilter === 'autre' && tiroir) return;
 
@@ -540,8 +618,6 @@ function buildOrderCard(so, orderIdx) {
         var qty = parseInt(item.quantity) || 1;
         var hasDessin = desc.toLowerCase().indexOf('dessin') >= 0;
 
-        // Pour tiroir : valeur par défaut = qté ligne
-        // Pour autre : vide (force la saisie)
         var qteEtiqValeur = tiroir ? qty : '';
         var qteEtiqClass = tiroir ? 'qte-tiroir' : 'qte-simple';
         var rowClass = tiroir ? 'tiroir-row' : 'simple-row';
@@ -553,8 +629,8 @@ function buildOrderCard(so, orderIdx) {
         tableHtml += '<tr class="' + rowClass + '">' +
             '<td style="text-align:center;"><input type="checkbox" class="item-check" data-order="' + orderIdx + '" data-line="' + lineIdx + '" checked></td>' +
             '<td>' + typeTag + '</td>' +
-            '<td><div class="item-name">' + escapeHtml(desc) + '</div>' + (hasDessin ? '<div class="item-dessin">📐 VOIR DESSIN</div>' : '') + '</td>' +
-            '<td style="font-weight:700;">' + qty + '</td>' +
+            '<td><div class="item-name">' + escapeHtml(desc) + '</div>' + (hasDessin ? '<div class="item-dessin">Voir dessin</div>' : '') + '</td>' +
+            '<td style="font-weight:600;">' + qty + '</td>' +
             '<td><input type="number" class="qte-input ' + qteEtiqClass + '" data-order="' + orderIdx + '" data-line="' + lineIdx + '" value="' + qteEtiqValeur + '" min="0" max="999" ' + placeholder + '></td>' +
             '</tr>';
     });
@@ -568,9 +644,6 @@ function buildOrderCard(so, orderIdx) {
 function toutSelectionner()   { document.querySelectorAll('.item-check').forEach(function(cb) { cb.checked = true; }); }
 function toutDeselectionner() { document.querySelectorAll('.item-check').forEach(function(cb) { cb.checked = false; }); }
 
-// ============================================================
-// PARSING (logique V5)
-// ============================================================
 function parseDescription(desc) {
     var idx = desc.lastIndexOf(' -');
     var itemName, options;
@@ -604,9 +677,6 @@ function escapeHtml(s) {
     return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
-// ============================================================
-// GÉNÉRATION DES ÉTIQUETTES + IMPRESSION
-// ============================================================
 function buildLabelsForOrder(so, orderIdx) {
     var totalItems = so.line_items.reduce(function(total, item) {
         if (isMarqueur(item)) return total;
@@ -636,7 +706,6 @@ function buildLabelsForOrder(so, orderIdx) {
         var lineIdx = entry.origIndex;
         if (isMarqueur(item)) return;
 
-        // Appliquer le filtre par type si actif
         var tiroir = isTiroir(item);
         if (typeFilter === 'tiroir' && !tiroir) return;
         if (typeFilter === 'autre' && tiroir) return;
@@ -651,10 +720,11 @@ function buildLabelsForOrder(so, orderIdx) {
         var desc = item.description || '';
         var ctx = contextByLine[lineIdx] || { refClient: '', sousPO: '' };
         var parsed = parseDescription(desc);
-        var optLower = parsed.options.toLowerCase();
-        var vernis = optLower.indexOf('vernis') >= 0 ? 'Oui' : 'Non';
-        var logo   = optLower.indexOf('logo')   >= 0 ? 'Oui' : 'Non';
-        var clips  = optLower.indexOf('clip')   >= 0 ? 'Oui' : 'Non';
+
+        // BUG FIX : recherche dans desc (toute la description)
+        var logo   = hasOption(desc, 'logo')   ? 'Oui' : 'Non';
+        var clips  = (hasOption(desc, 'clip')  || hasOption(desc, 'clips'))  ? 'Oui' : 'Non';
+        var vernis = hasOption(desc, 'vernis') ? 'Oui' : 'Non';
 
         for (var n = 0; n < nbEtiq; n++) {
             labelCount++;
@@ -684,21 +754,17 @@ function imprimerMaintenant() {
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner"></span>Impression...';
 
-    // Copier l'aperçu vers la zone d'impression (avec classes "label" pour @media print)
     var apercuHtml = document.getElementById('apercuLabels').innerHTML;
-    // Remplacer la classe "apercu-label" par "label" pour que le CSS @media print s'applique
     var printHtml = apercuHtml.replace(/class="apercu-label"/g, 'class="label"');
-    // Enlever les numéros d'aperçu (ne doivent pas s'imprimer)
     printHtml = printHtml.replace(/<div class="apercu-num">[^<]*<\/div>/g, '');
 
     document.getElementById('printArea').innerHTML = printHtml;
 
-    // Délai pour laisser le navigateur faire le rendu propre (évite les lignes noires)
     setTimeout(function() {
         window.print();
         setTimeout(function() {
             btn.disabled = false;
-            btn.innerHTML = '🖨️ Imprimer maintenant';
+            btn.innerHTML = 'Imprimer maintenant';
         }, 500);
     }, 300);
 }
@@ -706,7 +772,6 @@ function imprimerMaintenant() {
 function fermerApercu() {
     document.getElementById('apercuContainer').style.display = 'none';
     document.getElementById('apercuLabels').innerHTML = '';
-    // Scroll en haut pour revoir la liste
     document.getElementById('ordersContainer').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
@@ -720,20 +785,18 @@ function genererApercu() {
         var so = card._so;
         if (!so) return;
         var built = buildLabelsForOrder(so, orderIdx);
-        // Ajouter un numéro d'étiquette au-dessus de chaque étiquette de l'aperçu
         var numbered = '';
-        // Découper en étiquettes individuelles pour numéroter
         var labelMatches = built.html.match(/<div class="apercu-label">[\s\S]*?<\/div>\s*<\/div>\s*<\/div>/g) || [];
         labelMatches.forEach(function(labelHtml) {
             labelNum++;
-            numbered += '<div class="apercu-num">Étiquette #' + labelNum + ' / ' + 'CMD ' + so.salesorder_number + '</div>' + labelHtml;
+            numbered += '<div class="apercu-num">Étiquette ' + labelNum + ' &nbsp;—&nbsp; Commande ' + so.salesorder_number + '</div>' + labelHtml;
         });
         allLabelsHtml += numbered;
         totalLabels += built.count;
     });
 
     if (totalLabels === 0) {
-        alert('Aucune étiquette à imprimer.\n\nVérifiez que :\n- Au moins une ligne est cochée\n- Les lignes "Autre" ont une qté étiquettes saisie');
+        alert('Aucune étiquette à imprimer.\n\nVérifiez que :\n• Au moins une ligne est cochée\n• Les lignes « Autre » ont une quantité saisie');
         return;
     }
 
@@ -741,7 +804,6 @@ function genererApercu() {
     document.getElementById('totalCount').textContent = '(' + totalLabels + ' étiquette' + (totalLabels > 1 ? 's' : '') + ')';
     document.getElementById('apercuContainer').style.display = 'block';
 
-    // Scroll vers l'aperçu
     setTimeout(function() {
         document.getElementById('apercuContainer').scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 100);
@@ -751,7 +813,7 @@ function showStatus(type, msg) {
     var el = document.getElementById('searchStatus');
     el.className = 'status ' + type;
     el.innerHTML = msg;
-    el.style.display = 'block';
+    el.style.display = 'flex';
 }
 </script>
 </body>
