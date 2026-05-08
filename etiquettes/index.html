@@ -9,28 +9,33 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 :root {
-    --bg: #F4F6F8;
+    /* Palette harmonisée avec Production_Tiroirs_JONH */
+    --bg: #F5F4E8;              /* crème pâle (fond app Zoho) */
     --surface: #FFFFFF;
-    --border: #E1E5EA;
-    --border-strong: #CAD1D9;
-    --text: #1F2A37;
-    --text-muted: #5A6675;
-    --text-faint: #8A95A3;
-    --primary: #2D5A3D;
-    --primary-hover: #224830;
-    --primary-soft: #E8F0EA;
-    --secondary: #2C3E50;
-    --secondary-hover: #1F2D3A;
-    --accent: #B8722B;
-    --accent-hover: #9B5F22;
-    --accent-soft: #FBF1E5;
-    --success: #2D5A3D;
-    --error: #B23B3B;
-    --info: #1E5A8A;
-    --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
-    --shadow-md: 0 1px 3px rgba(15, 23, 42, 0.08), 0 4px 12px rgba(15, 23, 42, 0.04);
-    --radius-sm: 4px;
-    --radius-md: 6px;
+    --surface-alt: #FAFAF2;     /* crème très pâle */
+    --border: #E0DFD0;          /* bordure crème */
+    --border-strong: #C9C7B4;
+    --text: #2C3318;            /* vert très foncé / noir olive */
+    --text-muted: #5F6B47;      /* vert olive moyen */
+    --text-faint: #9AA585;
+
+    --primary: #5D6F2E;         /* vert olive principal */
+    --primary-hover: #4A5926;
+    --primary-soft: #EDEFD9;    /* vert olive très pâle */
+    --primary-dark: #3E4A1E;    /* vert très foncé (header bandeau) */
+
+    --accent: #8B5A2B;          /* brun terreux pour "Autre" */
+    --accent-hover: #714720;
+    --accent-soft: #F4EAD9;
+
+    --success: #5D6F2E;
+    --error: #A04545;
+    --info: #4A6B8A;
+
+    --shadow-sm: 0 1px 2px rgba(46, 56, 24, 0.06);
+    --shadow-md: 0 1px 3px rgba(46, 56, 24, 0.08), 0 4px 12px rgba(46, 56, 24, 0.04);
+    --radius-sm: 5px;
+    --radius-md: 8px;
 }
 
 body {
@@ -54,190 +59,381 @@ body {
     overflow: hidden;
 }
 
+/* HEADER avec dégradé vert comme dans Production_Tiroirs */
 .header {
+    padding: 26px 32px;
+    background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+    color: #fff;
+    border-bottom: 1px solid var(--border);
+}
+.header-title {
+    font-size: 19px;
+    font-weight: 600;
+    color: #fff;
+    letter-spacing: -0.01em;
+}
+.header-subtitle {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.78);
+    margin-top: 3px;
+    font-weight: 400;
+}
+
+.section {
     padding: 24px 32px;
     border-bottom: 1px solid var(--border);
     background: var(--surface);
 }
-.header-title { font-size: 18px; font-weight: 600; color: var(--text); letter-spacing: -0.01em; }
-.header-subtitle { font-size: 13px; color: var(--text-muted); margin-top: 2px; font-weight: 400; }
-
-.section { padding: 24px 32px; border-bottom: 1px solid var(--border); }
 .section:last-of-type { border-bottom: none; }
 
 .section-title {
-    font-size: 11px; font-weight: 600; color: var(--text-muted);
-    text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 16px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 16px;
 }
 
-.search-row { display: flex; gap: 10px; margin-bottom: 12px; align-items: center; flex-wrap: wrap; }
+.search-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+}
 .search-row:last-child { margin-bottom: 0; }
 .search-row label {
-    font-weight: 500; font-size: 13px; color: var(--text);
-    min-width: 110px; display: flex; align-items: center; gap: 8px;
+    font-weight: 500;
+    font-size: 13px;
+    color: var(--text);
+    min-width: 110px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .input {
-    flex: 1; padding: 9px 12px;
+    flex: 1;
+    padding: 9px 12px;
     border: 1px solid var(--border-strong);
     border-radius: var(--radius-sm);
-    font-size: 14px; font-family: inherit;
-    color: var(--text); background: var(--surface);
+    font-size: 14px;
+    font-family: inherit;
+    color: var(--text);
+    background: var(--surface);
     min-width: 110px;
     transition: border-color 0.15s, box-shadow 0.15s;
 }
-.input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(45, 90, 61, 0.12); }
+.input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(93, 111, 46, 0.15);
+}
 .input::placeholder { color: var(--text-faint); }
 
+/* BOUTONS — style "outline" comme dans Production_Tiroirs */
 .btn {
-    padding: 9px 16px; font-size: 13px; font-weight: 500; font-family: inherit;
-    border: 1px solid transparent; border-radius: var(--radius-sm);
-    cursor: pointer; transition: all 0.15s; white-space: nowrap; line-height: 1.4;
+    padding: 9px 18px;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: inherit;
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+    line-height: 1.4;
+    background: var(--surface);
 }
 .btn:disabled { opacity: 0.55; cursor: not-allowed; }
-.btn-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
-.btn-primary:hover:not(:disabled) { background: var(--primary-hover); border-color: var(--primary-hover); }
-.btn-secondary { background: var(--secondary); color: #fff; border-color: var(--secondary); }
-.btn-secondary:hover:not(:disabled) { background: var(--secondary-hover); border-color: var(--secondary-hover); }
-.btn-accent { background: var(--accent); color: #fff; border-color: var(--accent); }
-.btn-accent:hover:not(:disabled) { background: var(--accent-hover); border-color: var(--accent-hover); }
-.btn-ghost { background: var(--surface); color: var(--text-muted); border-color: var(--border-strong); }
-.btn-ghost:hover:not(:disabled) { background: var(--bg); color: var(--text); }
+
+/* Outline vert olive — comme tes boutons "Devant/Dos/Coté", "Étiquettes", etc. */
+.btn-primary {
+    background: var(--surface);
+    color: var(--primary);
+    border-color: var(--primary);
+}
+.btn-primary:hover:not(:disabled) {
+    background: var(--primary-soft);
+    color: var(--primary-hover);
+    border-color: var(--primary-hover);
+}
+
+/* Plein vert pour action principale (générer, imprimer) */
+.btn-solid {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+}
+.btn-solid:hover:not(:disabled) {
+    background: var(--primary-hover);
+    border-color: var(--primary-hover);
+}
+
+/* Outline brun pour "Autres" */
+.btn-accent {
+    background: var(--surface);
+    color: var(--accent);
+    border-color: var(--accent);
+}
+.btn-accent:hover:not(:disabled) {
+    background: var(--accent-soft);
+    color: var(--accent-hover);
+    border-color: var(--accent-hover);
+}
+
+/* Bouton neutre */
+.btn-ghost {
+    background: var(--surface);
+    color: var(--text-muted);
+    border-color: var(--border-strong);
+}
+.btn-ghost:hover:not(:disabled) {
+    background: var(--surface-alt);
+    color: var(--text);
+    border-color: var(--text-muted);
+}
 
 .status {
-    padding: 11px 14px; border-radius: var(--radius-sm);
-    font-size: 13px; margin: 0 32px 20px;
-    border: 1px solid; display: flex; align-items: center; gap: 8px;
+    padding: 11px 14px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    margin: 0 32px 20px;
+    border: 1px solid;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
-.status.success { background: #EFF7F1; color: var(--success); border-color: #C8DDCC; }
-.status.error   { background: #FBEDED; color: var(--error);   border-color: #E8C5C5; }
-.status.info    { background: #EDF3F8; color: var(--info);    border-color: #C7D8E5; }
+.status.success { background: var(--primary-soft); color: var(--primary-hover); border-color: rgba(93,111,46,0.25); }
+.status.error   { background: #F8E8E8; color: var(--error); border-color: #E0C0C0; }
+.status.info    { background: #E8EFF5; color: var(--info);  border-color: #C5D5E2; }
 
-#ordersContainer { padding: 0 32px; }
-#ordersContainer:not(:empty) { padding-top: 8px; padding-bottom: 8px; }
+#ordersContainer { padding: 0 32px; background: var(--surface); }
+#ordersContainer:not(:empty) { padding-top: 12px; padding-bottom: 12px; }
 
 .order-card {
-    margin-bottom: 16px; border: 1px solid var(--border);
-    border-radius: var(--radius-md); overflow: hidden; background: var(--surface);
+    margin-bottom: 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    background: var(--surface);
 }
+
+/* Header de carte avec le même dégradé vert que l'app principale */
 .order-card-header {
-    background: var(--secondary); color: #fff; padding: 14px 20px;
-    display: flex; justify-content: space-between; align-items: center; gap: 12px;
+    background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+    color: #fff;
+    padding: 14px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
 }
 .order-num { font-size: 14px; font-weight: 600; }
-.order-meta { font-size: 12px; color: rgba(255,255,255,0.75); margin-top: 2px; font-weight: 400; }
+.order-meta { font-size: 12px; color: rgba(255,255,255,0.8); margin-top: 2px; font-weight: 400; }
 .order-count {
-    background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.18);
-    border-radius: 4px; padding: 4px 10px; font-size: 12px; font-weight: 500; flex-shrink: 0;
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.22);
+    border-radius: 4px;
+    padding: 4px 11px;
+    font-size: 12px;
+    font-weight: 500;
+    flex-shrink: 0;
 }
 
 .items-table { width: 100%; border-collapse: collapse; font-size: 13px; }
 .items-table th {
-    padding: 10px 14px; background: var(--bg); color: var(--text-muted);
-    font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em;
-    text-align: left; border-bottom: 1px solid var(--border);
+    padding: 10px 14px;
+    background: var(--surface-alt);
+    color: var(--text-muted);
+    font-weight: 600;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
 }
-.items-table td { padding: 11px 14px; border-bottom: 1px solid var(--border); color: var(--text); vertical-align: top; }
+.items-table td {
+    padding: 11px 14px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    vertical-align: top;
+}
 .items-table tr:last-child td { border-bottom: none; }
-.items-table tr.tiroir-row td { background: rgba(45, 90, 61, 0.025); }
-.items-table tr.tiroir-row:hover td { background: rgba(45, 90, 61, 0.06); }
-.items-table tr.simple-row td { background: rgba(184, 114, 43, 0.03); }
-.items-table tr.simple-row:hover td { background: rgba(184, 114, 43, 0.07); }
+.items-table tr.tiroir-row td { background: rgba(93, 111, 46, 0.025); }
+.items-table tr.tiroir-row:hover td { background: rgba(93, 111, 46, 0.07); }
+.items-table tr.simple-row td { background: rgba(139, 90, 43, 0.025); }
+.items-table tr.simple-row:hover td { background: rgba(139, 90, 43, 0.07); }
 
 .item-name { font-weight: 500; font-size: 13px; line-height: 1.45; }
 .item-dessin {
-    display: inline-block; font-size: 10px; color: var(--accent); font-weight: 600;
-    margin-top: 4px; padding: 2px 7px; background: var(--accent-soft);
-    border-radius: 3px; text-transform: uppercase; letter-spacing: 0.04em;
+    display: inline-block;
+    font-size: 10px;
+    color: var(--accent);
+    font-weight: 600;
+    margin-top: 4px;
+    padding: 2px 7px;
+    background: var(--accent-soft);
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
 }
 
 .tag {
-    display: inline-block; padding: 3px 8px; border-radius: 3px;
-    font-size: 10px; font-weight: 600; text-transform: uppercase;
-    letter-spacing: 0.06em; line-height: 1.4; border: 1px solid transparent;
+    display: inline-block;
+    padding: 3px 9px;
+    border-radius: 3px;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    line-height: 1.4;
+    border: 1px solid transparent;
 }
-.tag-tiroir { background: var(--primary-soft); color: var(--primary); border-color: rgba(45,90,61,0.18); }
-.tag-simple { background: var(--accent-soft);  color: var(--accent);  border-color: rgba(184,114,43,0.2); }
+.tag-tiroir { background: var(--primary-soft); color: var(--primary); border-color: rgba(93,111,46,0.25); }
+.tag-simple { background: var(--accent-soft);  color: var(--accent);  border-color: rgba(139,90,43,0.28); }
 
 input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--primary); cursor: pointer; }
 
 .qte-input {
-    width: 64px; padding: 6px 8px;
-    border: 1px solid var(--border-strong); border-radius: var(--radius-sm);
-    font-size: 13px; text-align: center; font-family: inherit; font-weight: 500;
-    background: var(--surface); transition: border-color 0.15s, box-shadow 0.15s;
+    width: 64px;
+    padding: 6px 8px;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    text-align: center;
+    font-family: inherit;
+    font-weight: 500;
+    background: var(--surface);
+    transition: border-color 0.15s, box-shadow 0.15s;
 }
-.qte-input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px rgba(45, 90, 61, 0.15); }
+.qte-input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(93, 111, 46, 0.18);
+}
 .qte-input.qte-simple { border-color: var(--accent); }
-.qte-input.qte-simple:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(184,114,43,0.18); }
+.qte-input.qte-simple:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(139,90,43,0.2); }
 .qte-input.qte-simple::placeholder { color: var(--accent); opacity: 0.55; font-weight: 600; }
 
 .action-bar {
-    padding: 16px 32px; background: var(--bg); border-top: 1px solid var(--border);
-    display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
-    position: sticky; bottom: 0; z-index: 10;
+    padding: 16px 32px;
+    background: var(--surface-alt);
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
 }
-.action-bar .btn-primary { flex: 1; min-width: 200px; }
+.action-bar .btn-solid { flex: 1; min-width: 200px; }
 
 .legend {
-    padding: 14px 20px; background: var(--bg); border-top: 1px solid var(--border);
-    font-size: 12px; color: var(--text-muted);
-    display: flex; gap: 24px; flex-wrap: wrap; align-items: center;
+    padding: 14px 22px;
+    background: var(--surface-alt);
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--text-muted);
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    align-items: center;
 }
 .legend > div { display: flex; align-items: center; gap: 8px; }
 
 .spinner {
-    display: inline-block; width: 13px; height: 13px;
-    border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff;
-    border-radius: 50%; animation: spin 0.7s linear infinite;
-    margin-right: 7px; vertical-align: -2px;
+    display: inline-block;
+    width: 13px; height: 13px;
+    border: 2px solid rgba(255,255,255,0.35);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    margin-right: 7px;
+    vertical-align: -2px;
 }
 .spinner-dark {
-    display: inline-block; width: 13px; height: 13px;
-    border: 2px solid rgba(45,90,61,0.18); border-top-color: var(--primary);
-    border-radius: 50%; animation: spin 0.7s linear infinite;
-    margin-right: 7px; vertical-align: -2px;
+    display: inline-block;
+    width: 13px; height: 13px;
+    border: 2px solid rgba(93,111,46,0.2);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    margin-right: 7px;
+    vertical-align: -2px;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-.apercu-section { padding: 24px 32px; border-top: 1px solid var(--border); background: var(--bg); }
-.apercu-header {
-    display: flex; align-items: center; justify-content: space-between;
-    margin-bottom: 20px; gap: 12px; flex-wrap: wrap;
+.apercu-section {
+    padding: 24px 32px;
+    border-top: 1px solid var(--border);
+    background: var(--surface-alt);
 }
-.apercu-header h2 { font-size: 15px; font-weight: 600; color: var(--text); letter-spacing: -0.01em; }
-.apercu-header h2 .total-count { color: var(--text-muted); font-weight: 400; margin-left: 6px; }
+.apercu-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+.apercu-header h2 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: -0.01em;
+}
+.apercu-header h2 .total-count {
+    color: var(--text-muted);
+    font-weight: 400;
+    margin-left: 6px;
+}
 .apercu-actions { display: flex; gap: 8px; }
 
 .apercu-num {
-    text-align: center; font-size: 11px; color: var(--text-faint);
-    margin-bottom: 6px; font-weight: 500; letter-spacing: 0.02em;
+    text-align: center;
+    font-size: 11px;
+    color: var(--text-faint);
+    margin-bottom: 6px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
 }
 
+/* APERÇU ÉTIQUETTE (rendu écran seulement) */
 .apercu-label {
-    width: 4in; height: 2.875in;
-    border: 1px dashed var(--border-strong); background: white;
+    width: 4in;
+    height: 2.875in;
+    border: 1px dashed var(--border-strong);
+    background: white;
     margin: 0 auto 18px;
-    display: flex; flex-direction: column; position: relative; overflow: hidden;
-    padding-top: 0.75in; font-family: Arial, sans-serif;
-    box-shadow: var(--shadow-sm); border-radius: 3px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+    padding-top: 0.75in;
+    font-family: Arial, sans-serif;
+    box-shadow: var(--shadow-sm);
+    border-radius: 3px;
 }
 .apercu-label .label-body { flex: 1; padding: 4px 14px 0; overflow: hidden; }
 .apercu-label .row { display: flex; align-items: baseline; flex-wrap: wrap; gap: 5px; margin-bottom: 4px; }
 .apercu-label .row-item { flex-wrap: nowrap; }
 .apercu-label .row-item .item-v { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; min-width: 0; }
 .apercu-label .row-top { margin-bottom: 6px; }
-.apercu-label .k { font-weight: 700; font-size: 10pt; white-space: nowrap; flex-shrink: 0; }
-.apercu-label .v { font-size: 10pt; word-break: break-word; }
+.apercu-label .k { font-weight: 700; font-size: 10pt; white-space: nowrap; flex-shrink: 0; color: #000; }
+.apercu-label .v { font-size: 10pt; word-break: break-word; color: #000; }
 .apercu-label .vbig { font-weight: 700; font-size: 11pt; }
 .apercu-label .item-v { font-weight: 600; font-size: 9.5pt; }
 .apercu-label .ml { margin-left: auto; }
 .apercu-label .label-footer { padding: 4px 14px 6px; border-top: 0.5pt solid #999; flex-shrink: 0; position: relative; }
-.apercu-label .flags { display: flex; gap: 14px; font-size: 9pt; margin-bottom: 2px; }
+.apercu-label .flags { display: flex; gap: 14px; font-size: 9pt; margin-bottom: 2px; color: #000; }
 .apercu-label .flags b { font-weight: 700; }
 .apercu-label .made { font-size: 8pt; color: #555; font-style: italic; }
-.apercu-label .nbitem { position: absolute; bottom: 6px; right: 14px; font-size: 9pt; font-weight: 700; }
+.apercu-label .nbitem { position: absolute; bottom: 6px; right: 14px; font-size: 9pt; font-weight: 700; color: #000; }
 
+/* IMPRESSION — étiquette intacte */
 .print-area { display: none; }
 
 @media print {
@@ -279,7 +475,7 @@ input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--primary)
 
     <div class="header">
         <div class="header-title">Générateur d'étiquettes</div>
-        <div class="header-subtitle">Zoho Inventory — Bons de commande client</div>
+        <div class="header-subtitle">Production Tiroirs JONH — Zoho Inventory</div>
     </div>
 
     <div class="section" id="searchBox">
@@ -311,8 +507,8 @@ input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--primary)
     <div id="ordersContainer"></div>
 
     <div class="action-bar" id="globalActions" style="display:none;">
-        <button class="btn btn-primary" onclick="genererApercu()" id="btnApercu">Générer l'aperçu des étiquettes</button>
-        <button class="btn btn-secondary" onclick="toutSelectionner()">Tout sélectionner</button>
+        <button class="btn btn-solid" onclick="genererApercu()" id="btnApercu">Générer l'aperçu des étiquettes</button>
+        <button class="btn btn-primary" onclick="toutSelectionner()">Tout sélectionner</button>
         <button class="btn btn-ghost" onclick="toutDeselectionner()">Tout désélectionner</button>
     </div>
 
@@ -326,7 +522,7 @@ input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--primary)
             <h2>Aperçu des étiquettes <span class="total-count" id="totalCount"></span></h2>
             <div class="apercu-actions">
                 <button class="btn btn-ghost" onclick="fermerApercu()">Retour</button>
-                <button class="btn btn-primary" onclick="imprimerMaintenant()" id="btnPrintNow">Imprimer maintenant</button>
+                <button class="btn btn-solid" onclick="imprimerMaintenant()" id="btnPrintNow">Imprimer maintenant</button>
             </div>
         </div>
         <div id="apercuLabels"></div>
@@ -341,13 +537,7 @@ var PROXY = 'https://zoho-proxy.conception.workers.dev';
 var GROUPE_TIROIR = '45';
 var GROUPE_MARQUEUR = '90';
 
-// ============================================================
-// BUG FIX — Détection LOGO/CLIPS/VERNIS
-// L'ancien code coupait la description au DERNIER " -" et ne
-// cherchait que dans la portion de droite. Si LOGO était au
-// milieu, c'était systématiquement raté. On cherche maintenant
-// dans toute la chaîne avec word-boundary, insensible à la casse.
-// ============================================================
+// BUG FIX — Détection LOGO/CLIPS/VERNIS dans toute la description
 function hasOption(desc, motCle) {
     if (!desc) return false;
     var re = new RegExp('\\b' + motCle + '\\b', 'i');
@@ -384,16 +574,13 @@ window.addEventListener('load', function() {
 function chargerParId(soId) {
     window._currentTypeFilter = null;
     showStatus('info', '<span class="spinner-dark"></span>Chargement de la commande...');
-
     return fetch(PROXY + '/inventory/salesorders/' + soId)
     .then(function(r) { return r.json(); })
     .then(function(detail) {
         if (!detail.salesorder) throw new Error('Commande introuvable');
         afficherCommandes([detail.salesorder]);
     })
-    .catch(function(err) {
-        showStatus('error', (err.message || JSON.stringify(err)));
-    });
+    .catch(function(err) { showStatus('error', (err.message || JSON.stringify(err))); });
 }
 
 function chercherSeule() {
@@ -403,7 +590,7 @@ function chercherSeule() {
 
     var btn = document.getElementById('btnSeule');
     btn.disabled = true;
-    btn.innerHTML = '<span class="spinner"></span>Recherche...';
+    btn.innerHTML = '<span class="spinner-dark"></span>Recherche...';
     showStatus('info', '<span class="spinner-dark"></span>Chargement...');
     document.getElementById('ordersContainer').innerHTML = '';
     document.getElementById('globalActions').style.display = 'none';
@@ -416,13 +603,8 @@ function chercherSeule() {
         if (!orders || orders.length === 0) throw new Error('Commande introuvable : ' + soNum);
         return chargerParId(orders[0].salesorder_id);
     })
-    .catch(function(err) {
-        showStatus('error', (err.message || JSON.stringify(err)));
-    })
-    .finally(function() {
-        btn.disabled = false;
-        btn.innerHTML = 'Charger';
-    });
+    .catch(function(err) { showStatus('error', (err.message || JSON.stringify(err))); })
+    .finally(function() { btn.disabled = false; btn.innerHTML = 'Charger'; });
 }
 
 function chercherPlage(typeFilter) {
@@ -441,7 +623,7 @@ function chercherPlage(typeFilter) {
     var btnLabel = typeFilter === 'tiroir' ? 'Charger lot tiroirs' : 'Charger lot autres';
     var btn = document.getElementById(btnId);
     btn.disabled = true;
-    btn.innerHTML = '<span class="spinner"></span>Chargement...';
+    btn.innerHTML = '<span class="spinner-dark"></span>Chargement...';
     document.getElementById('ordersContainer').innerHTML = '';
     document.getElementById('globalActions').style.display = 'none';
     document.getElementById('legendBox').style.display = 'none';
@@ -486,10 +668,7 @@ function chercherPlage(typeFilter) {
             showStatus('success', filteredOrders.length + ' commande(s) avec ' + typeLabel + ' trouvée(s) sur ' + validOrders.length + ' commande(s) chargée(s).');
         }
     })
-    .finally(function() {
-        btn.disabled = false;
-        btn.innerHTML = btnLabel;
-    });
+    .finally(function() { btn.disabled = false; btn.innerHTML = btnLabel; });
 }
 
 function getGroupe(item) {
@@ -564,14 +743,12 @@ function getSortedLineItems(line_items) {
 function afficherCommandes(orders) {
     var container = document.getElementById('ordersContainer');
     container.innerHTML = '';
-
     var totalCommandes = 0;
     orders.forEach(function(so, orderIdx) {
         if (!so) return;
         totalCommandes++;
         container.appendChild(buildOrderCard(so, orderIdx));
     });
-
     if (totalCommandes > 0) {
         document.getElementById('globalActions').style.display = 'flex';
         document.getElementById('legendBox').style.display = 'flex';
@@ -663,10 +840,7 @@ function parseClientMarker(desc) {
     if (/^[A-Za-z]{2}-/.test(code)) {
         var parts = code.split('-');
         if (parts.length >= 3) {
-            return {
-                refClient: parts.slice(0, 2).join('-'),
-                sousPO:    parts.slice(2).join('-')
-            };
+            return { refClient: parts.slice(0, 2).join('-'), sousPO: parts.slice(2).join('-') };
         }
     }
     return { refClient: code, sousPO: '' };
@@ -721,7 +895,7 @@ function buildLabelsForOrder(so, orderIdx) {
         var ctx = contextByLine[lineIdx] || { refClient: '', sousPO: '' };
         var parsed = parseDescription(desc);
 
-        // BUG FIX : recherche dans desc (toute la description)
+        // BUG FIX : recherche dans toute la description
         var logo   = hasOption(desc, 'logo')   ? 'Oui' : 'Non';
         var clips  = (hasOption(desc, 'clip')  || hasOption(desc, 'clips'))  ? 'Oui' : 'Non';
         var vernis = hasOption(desc, 'vernis') ? 'Oui' : 'Non';
@@ -757,7 +931,6 @@ function imprimerMaintenant() {
     var apercuHtml = document.getElementById('apercuLabels').innerHTML;
     var printHtml = apercuHtml.replace(/class="apercu-label"/g, 'class="label"');
     printHtml = printHtml.replace(/<div class="apercu-num">[^<]*<\/div>/g, '');
-
     document.getElementById('printArea').innerHTML = printHtml;
 
     setTimeout(function() {
