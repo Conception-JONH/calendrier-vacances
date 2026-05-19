@@ -16,6 +16,9 @@
   .loading{text-align:center;padding:60px 20px;color:var(--text-muted);font-size:1.1rem}
   .loading .spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 16px}
   @keyframes spin{to{transform:rotate(360deg)}}
+  .error-box{max-width:500px;margin:60px auto;background:var(--surface);border:2px solid var(--blocked);border-radius:var(--radius);padding:32px;text-align:center;box-shadow:var(--shadow)}
+  .error-box h2{font-family:'Fraunces',serif;color:var(--blocked);font-size:1.4rem;margin-bottom:14px}
+  .error-box p{color:var(--text);line-height:1.6;margin-bottom:10px}
   .legend{display:flex;justify-content:center;gap:20px;margin-bottom:28px;flex-wrap:wrap}
   .legend-item{display:flex;align-items:center;gap:7px;font-size:0.82rem;color:var(--text-muted)}
   .legend-dot{width:14px;height:14px;border-radius:4px;flex-shrink:0}
@@ -85,14 +88,15 @@
 </head>
 <body>
 <div class="app-header"><h1>Choix de vacances</h1><p id="headerMsg">Chargement en cours...</p></div>
-<div id="loadingZone" class="loading"><div class="spinner"></div>Connexion au systeme de vacances...</div>
+<div id="loadingZone" class="loading"><div class="spinner"></div>Connexion au système de vacances...</div>
+<div id="errorZone" style="display:none;"></div>
 <div id="mainContent" style="display:none;">
   <div class="legend">
     <div class="legend-item"><div class="legend-dot available"></div>Disponible</div>
-    <div class="legend-item"><div class="legend-dot selected"></div>Votre selection</div>
+    <div class="legend-item"><div class="legend-dot selected"></div>Votre sélection</div>
     <div class="legend-item"><div class="legend-dot taken"></div>Pris (votre groupe)</div>
     <div class="legend-item"><div class="legend-dot overlap"></div>Chevauchement possible</div>
-    <div class="legend-item"><div class="legend-dot blocked"></div>Bloque / Ferie</div>
+    <div class="legend-item"><div class="legend-dot blocked"></div>Bloqué / Férié</div>
     <div class="legend-item"><div class="legend-dot weekend"></div>Fin de semaine</div>
   </div>
   <div id="statusMsg" class="status-msg"></div>
@@ -104,24 +108,28 @@
   <div class="calendar-grid" id="calendarGrid"></div>
 </div>
 <div class="overlay" id="confirmOverlay"><div class="modal"><h2>Confirmer vos vacances?</h2><div class="dates-display" id="modalDates"></div><p id="modalDaysCount"></p><div class="modal-buttons"><button class="btn btn-clear" onclick="hideConfirmation()">Annuler</button><button class="btn btn-confirm" id="btnSubmit" onclick="submitChoice()">Oui, confirmer</button></div></div></div>
-<div class="done-overlay" id="doneOverlay"><div class="done-box"><h2>Vacances confirmees!</h2><div class="done-dates" id="doneDates"></div><p>Votre choix a ete enregistre avec succes. Le prochain employe sera notifie automatiquement.<br><br>Vous pouvez fermer cette page.</p></div></div>
+<div class="done-overlay" id="doneOverlay"><div class="done-box"><h2>Vacances confirmées!</h2><div class="done-dates" id="doneDates"></div><p>Votre choix a été enregistré avec succès. Le prochain employé sera notifié automatiquement.<br><br>Vous pouvez fermer cette page.</p></div></div>
 
 <script>
 var urlParams=new URLSearchParams(window.location.search);
 var IS_ADMIN=urlParams.get('mode')==='admin';
+var URL_EMP_ID=urlParams.get('emp_id');
+var URL_EMP_NOM=urlParams.get('emp_nom');
+var URL_EMP_GROUPE=urlParams.get('emp_groupe');
 
 var CONFIG={formName:'Choix_Vacances',reportName:'Choix_Vacances_Report',employeReportName:'Employes_Vacances_Report',employeRecordId:null,employeNom:'',employeGroupe:'',
 blockedRanges:[
+  {start:new Date(2026,8,21),end:new Date(2026,9,1)},
   {start:new Date(2026,9,26),end:new Date(2026,9,30)},
   {start:new Date(2026,11,21),end:new Date(2027,0,3)}
 ],
 noVacationRanges:[{start:new Date(2026,5,1),end:new Date(2026,7,31)}],
 holidays:[
-  {date:new Date(2026,8,7),label:'Fete du Travail'},
-  {date:new Date(2026,9,12),label:'Action de grace'},
+  {date:new Date(2026,8,7),label:'Fête du Travail'},
+  {date:new Date(2026,9,12),label:'Action de grâce'},
   {date:new Date(2027,2,26),label:'Vendredi saint'},
-  {date:new Date(2027,4,24),label:'Journee des patriotes'},
-  {date:new Date(2027,5,24),label:'Fete nationale du Quebec'}
+  {date:new Date(2027,4,24),label:'Journée des patriotes'},
+  {date:new Date(2027,5,24),label:'Fête nationale du Québec'}
 ],
 calendarStart:new Date(2026,8,1),calendarEnd:new Date(2027,4,31),
 takenDates:[],allTakenDates:[],groups:[],adminFilterGroup:null,
@@ -132,7 +140,7 @@ function apiGet(rn,cr){var u=API.proxyUrl+'/api/report/'+rn;if(cr)u+='?criteria=
 function apiPost(fn,d){var u=API.proxyUrl+'/api/form/'+fn;console.log('API POST:',u);return fetch(u,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)}).then(function(r){return r.json()})}
 
 var selectionStart=null,selectedDays=[],previewDays=[],previewValid=true,isSubmitting=false,pageLocked=false;
-var MOIS_FR=['Janvier','Fevrier','Mars','Avril','Mai','Juin','Juillet','Aout','Septembre','Octobre','Novembre','Decembre'];
+var MOIS_FR=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
 
 function isSameDay(a,b){return a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate()}
 function isWeekend(d){return d.getDay()===0||d.getDay()===6}
@@ -150,6 +158,15 @@ function formatDateFr(d){return d.getDate()+' '+MOIS_FR[d.getMonth()].toLowerCas
 function formatDateISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function formatDateZoho(d){var m=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];return String(d.getDate()).padStart(2,'0')+'-'+m[d.getMonth()]+'-'+d.getFullYear()}
 function parseZohoDate(s){if(!s)return null;var d=new Date(s);if(!isNaN(d.getTime()))return d;return null}
+
+function showError(titre,message){
+  document.getElementById('loadingZone').style.display='none';
+  document.getElementById('mainContent').style.display='none';
+  var ez=document.getElementById('errorZone');
+  ez.style.display='block';
+  ez.innerHTML='<div class="error-box"><h2>'+titre+'</h2><p>'+message+'</p></div>';
+  document.getElementById('headerMsg').textContent='';
+}
 
 function generateCalendar(){var g=document.getElementById('calendarGrid');g.innerHTML='';var c=new Date(CONFIG.calendarStart.getFullYear(),CONFIG.calendarStart.getMonth(),1);var e=new Date(CONFIG.calendarEnd.getFullYear(),CONFIG.calendarEnd.getMonth(),1);while(c<=e){g.appendChild(createMonthCard(c.getFullYear(),c.getMonth()));c.setMonth(c.getMonth()+1)}}
 
@@ -177,12 +194,12 @@ function createMonthCard(y,m){
 
 function handleDayClick(date){
   if(isSubmitting||pageLocked||IS_ADMIN)return;
-  if(selectionStart===null){if(!isAvailable(date)&&!isOverlapDay(date))return;selectionStart=date;selectedDays=[date];updateDisplay();document.getElementById('selectionInfo').innerHTML='<strong>Debut:</strong> '+formatDateFr(date)+' — Cliquez sur votre dernier jour';document.getElementById('selectionDates').textContent='';document.getElementById('btnClear').style.display='inline-block';document.getElementById('btnConfirm').disabled=true}
-  else{if(date<selectionStart){showStatus('La date de fin doit etre apres la date de debut.','error');setTimeout(hideStatus,3000);return}
+  if(selectionStart===null){if(!isAvailable(date)&&!isOverlapDay(date))return;selectionStart=date;selectedDays=[date];updateDisplay();document.getElementById('selectionInfo').innerHTML='<strong>Début:</strong> '+formatDateFr(date)+' — Cliquez sur votre dernier jour';document.getElementById('selectionDates').textContent='';document.getElementById('btnClear').style.display='inline-block';document.getElementById('btnConfirm').disabled=true}
+  else{if(date<selectionStart){showStatus('La date de fin doit être après la date de début.','error');setTimeout(hideStatus,3000);return}
     var bz=getBusinessDaysBetween(selectionStart,date);if(bz.length<CONFIG.minDays){showStatus('Minimum '+CONFIG.minDays+' jour(s).','error');setTimeout(hideStatus,3000);return}
     if(bz.length>CONFIG.maxDays){showStatus('Maximum '+CONFIG.maxDays+' jours ouvrables.','error');setTimeout(hideStatus,3000);return}
     var hc=false;for(var i=1;i<bz.length-1;i++){if(isTakenFull(bz[i])){hc=true;break}}
-    if(hc){showStatus('Certains jours au milieu sont deja pris.','error');setTimeout(hideStatus,3000);return}
+    if(hc){showStatus('Certains jours au milieu sont déjà pris.','error');setTimeout(hideStatus,3000);return}
     selectedDays=bz;selectionStart=null;updateDisplay()}}
 
 function handleDayHover(date){
@@ -196,24 +213,24 @@ function updateDisplay(){updateCellClasses();updateSelectionBar()}
 
 function updateCellClasses(){document.querySelectorAll('.day-cell[data-date]').forEach(function(c){var p=c.dataset.date.split('-');var d=new Date(parseInt(p[0]),parseInt(p[1])-1,parseInt(p[2]));c.classList.remove('selected','selected-start','selected-end','selected-mid','preview','invalid-preview');if(selectedDays.length>0){var x=-1;for(var i=0;i<selectedDays.length;i++){if(isSameDay(selectedDays[i],d)){x=i;break}}if(x!==-1){c.classList.add('selected');if(x===0)c.classList.add('selected-start');else if(x===selectedDays.length-1)c.classList.add('selected-end');else c.classList.add('selected-mid')}}if(previewDays.length>0&&selectionStart!==null){var ip=previewDays.some(function(dd){return isSameDay(dd,d)});if(ip)c.classList.add(previewValid?'preview':'invalid-preview')}})}
 
-function updateSelectionBar(){var i=document.getElementById('selectionInfo'),d=document.getElementById('selectionDates'),bc=document.getElementById('btnClear'),bf=document.getElementById('btnConfirm');if(selectedDays.length>1||(selectedDays.length===1&&selectionStart===null)){i.innerHTML='<strong>'+selectedDays.length+' jour(s) selectionne(s)</strong> — vos vacances :';d.textContent=formatDateFr(selectedDays[0])+' -> '+formatDateFr(selectedDays[selectedDays.length-1]);bc.style.display='inline-block';bf.disabled=false}else if(selectionStart!==null){bc.style.display='inline-block';bf.disabled=true}else{i.textContent='Cliquez sur votre premier jour de vacances';d.textContent='';bc.style.display='none';bf.disabled=true}}
+function updateSelectionBar(){var i=document.getElementById('selectionInfo'),d=document.getElementById('selectionDates'),bc=document.getElementById('btnClear'),bf=document.getElementById('btnConfirm');if(selectedDays.length>1||(selectedDays.length===1&&selectionStart===null)){i.innerHTML='<strong>'+selectedDays.length+' jour(s) sélectionné(s)</strong> — vos vacances :';d.textContent=formatDateFr(selectedDays[0])+' → '+formatDateFr(selectedDays[selectedDays.length-1]);bc.style.display='inline-block';bf.disabled=false}else if(selectionStart!==null){bc.style.display='inline-block';bf.disabled=true}else{i.textContent='Cliquez sur votre premier jour de vacances';d.textContent='';bc.style.display='none';bf.disabled=true}}
 
-function showConfirmation(){if(selectedDays.length<CONFIG.minDays)return;document.getElementById('modalDates').textContent=formatDateFr(selectedDays[0])+' -> '+formatDateFr(selectedDays[selectedDays.length-1]);document.getElementById('modalDaysCount').textContent=selectedDays.length+' jour(s) ouvrable(s). Cette periode sera reservee pour vous.';document.getElementById('confirmOverlay').classList.add('visible')}
+function showConfirmation(){if(selectedDays.length<CONFIG.minDays)return;document.getElementById('modalDates').textContent=formatDateFr(selectedDays[0])+' → '+formatDateFr(selectedDays[selectedDays.length-1]);document.getElementById('modalDaysCount').textContent=selectedDays.length+' jour(s) ouvrable(s). Cette période sera réservée pour vous.';document.getElementById('confirmOverlay').classList.add('visible')}
 function hideConfirmation(){document.getElementById('confirmOverlay').classList.remove('visible')}
 
 function submitChoice(){
-  if(isSubmitting||pageLocked)return;isSubmitting=true;hideConfirmation();
+  if(isSubmitting||pageLocked)return;
+  if(!CONFIG.employeRecordId){showStatus('Erreur: ID employé manquant.','error');return}
+  isSubmitting=true;hideConfirmation();
   var dateDebut=formatDateZoho(selectedDays[0]),dateFin=formatDateZoho(selectedDays[selectedDays.length-1]);
   var sb=document.getElementById('btnSubmit');sb.textContent='Envoi...';sb.disabled=true;
   var body={data:{Employes_Vacances:CONFIG.employeRecordId,Date_debut:dateDebut,Date_fin:dateFin}};
-  console.log('Soumission:',JSON.stringify(body));
-  apiPost('Choix_Vacances',body).then(function(r){console.log('Reponse:',JSON.stringify(r));if(r.code===3000){pageLocked=true;document.getElementById('doneDates').textContent=formatDateFr(selectedDays[0])+' -> '+formatDateFr(selectedDays[selectedDays.length-1]);document.getElementById('doneOverlay').classList.add('visible')}else{showStatus('Erreur: '+(r.message||JSON.stringify(r)),'error');resetSubmitBtn()}}).catch(function(e){console.error('Erreur:',e);showStatus('Erreur reseau: '+e.message,'error');resetSubmitBtn()})}
+  console.log('Soumission pour employé ID:',CONFIG.employeRecordId,'Nom:',CONFIG.employeNom);
+  console.log('Body:',JSON.stringify(body));
+  apiPost('Choix_Vacances',body).then(function(r){console.log('Reponse:',JSON.stringify(r));if(r.code===3000){pageLocked=true;document.getElementById('doneDates').textContent=formatDateFr(selectedDays[0])+' → '+formatDateFr(selectedDays[selectedDays.length-1]);document.getElementById('doneOverlay').classList.add('visible')}else{showStatus('Erreur: '+(r.message||JSON.stringify(r)),'error');resetSubmitBtn()}}).catch(function(e){console.error('Erreur:',e);showStatus('Erreur réseau: '+e.message,'error');resetSubmitBtn()})}
 
 function resetSubmitBtn(){isSubmitting=false;var s=document.getElementById('btnSubmit');s.textContent='Oui, confirmer';s.disabled=false}
 
-// =============================================
-//  ADMIN: boutons de filtre par groupe
-// =============================================
 function setupAdminBar(){
   if(!IS_ADMIN||CONFIG.groups.length===0)return;
   var bar=document.getElementById('adminBar');bar.classList.add('visible');
@@ -229,11 +246,8 @@ function filterByGroup(group){
   generateCalendar()
 }
 
-// =============================================
-//  CHARGEMENT DES DONNÉES
-// =============================================
 function loadAllData(){
-  return new Promise(function(resolve){
+  return new Promise(function(resolve,reject){
     console.log('Proxy Cloudflare: OK');
     if(IS_ADMIN){
       console.log('Mode admin: chargement employes + conges...');
@@ -260,7 +274,6 @@ function loadAllData(){
                 grp=rec.Employes_Vacances.Groupe||'';
               }else{nm=rec.Employes_Vacances}
             }
-            console.log('DEBUG conge:', nm, 'empMap[nm]:', empMap[nm], 'ID:', rec.Employes_Vacances?rec.Employes_Vacances.ID:'none', 'empMap[ID]:', rec.Employes_Vacances?empMap[rec.Employes_Vacances.ID]:'none');
             if(!grp&&nm&&empMap[nm])grp=empMap[nm];
             if(!grp&&rec.Employes_Vacances&&rec.Employes_Vacances.ID&&empMap[rec.Employes_Vacances.ID])grp=empMap[rec.Employes_Vacances.ID];
             if(db&&fn){
@@ -276,15 +289,60 @@ function loadAllData(){
       }).catch(function(e){console.warn('Erreur admin:',e);resolve()});
       return
     }
-    console.log('Recherche employe Son_tour...');
-    apiGet(CONFIG.employeReportName,'(Statut == "Son_tour")').then(function(er){
-      console.log('Employes Son_tour:',JSON.stringify(er));
-      if(er.code===3000&&er.data&&er.data.length>0){var e=er.data[0];CONFIG.employeRecordId=e.ID;CONFIG.employeNom=e.Nom||'';CONFIG.employeGroupe=e.Groupe||'';console.log('Employe:',CONFIG.employeNom,'('+CONFIG.employeGroupe+')')}else{console.warn('Aucun Son_tour:',er)}
-      console.log('Chargement conges...');var cr=CONFIG.employeGroupe?'(Employes_Vacances.Groupe == "'+CONFIG.employeGroupe+'")':null;return apiGet(CONFIG.reportName,cr)
-    }).then(function(cr){
-      console.log('Conges:',JSON.stringify(cr));
-      if(cr&&cr.code===3000&&cr.data){cr.data.forEach(function(rec){var db=parseZohoDate(rec.Date_debut),fn=parseZohoDate(rec.Date_fin),nm='';if(rec.Employes_Vacances){nm=typeof rec.Employes_Vacances==='object'?(rec.Employes_Vacances.zc_display_value||rec.Employes_Vacances.display_value||rec.Employes_Vacances.Nom||''):rec.Employes_Vacances}if(db&&fn){CONFIG.takenDates.push({start:db,end:fn,employeNom:nm})}});console.log('Total conges:',CONFIG.takenDates.length)}resolve()
-    }).catch(function(e){console.warn('Erreur:',e);resolve()})
+    
+    // ============= MODE EMPLOYÉ =============
+    // PRIORITÉ: emp_id dans l'URL (envoyé par le courriel)
+    if(URL_EMP_ID){
+      console.log('emp_id trouvé dans URL:',URL_EMP_ID);
+      apiGet(CONFIG.employeReportName,'(ID == '+URL_EMP_ID+')').then(function(er){
+        console.log('Employé par ID URL:',JSON.stringify(er));
+        if(er.code===3000&&er.data&&er.data.length>0){
+          var e=er.data[0];
+          // Vérification: l'employé doit être à Son_tour
+          if(e.Statut!=='Son_tour'){
+            console.warn('Employé pas Son_tour, statut actuel:',e.Statut);
+            showError('Ce n\'est pas votre tour','Bonjour '+(e.Nom||URL_EMP_NOM||'')+', votre choix a déjà été enregistré ou ce n\'est pas encore votre tour. Veuillez attendre le courriel de notification.');
+            reject('not_son_tour');
+            return;
+          }
+          CONFIG.employeRecordId=e.ID;
+          CONFIG.employeNom=e.Nom||'';
+          CONFIG.employeGroupe=e.Groupe||'';
+          console.log('Employé chargé:',CONFIG.employeNom,'('+CONFIG.employeGroupe+')');
+          var cr='(Employes_Vacances.Groupe == "'+CONFIG.employeGroupe+'")';
+          return apiGet(CONFIG.reportName,cr);
+        }else{
+          showError('Employé introuvable','L\'employé identifié dans le lien n\'a pas été trouvé. Veuillez contacter l\'administrateur.');
+          reject('emp_not_found');
+          return;
+        }
+      }).then(function(cr){
+        if(!cr)return;
+        console.log('Congés:',JSON.stringify(cr));
+        if(cr&&cr.code===3000&&cr.data){
+          cr.data.forEach(function(rec){
+            var db=parseZohoDate(rec.Date_debut),fn=parseZohoDate(rec.Date_fin),nm='';
+            if(rec.Employes_Vacances){
+              nm=typeof rec.Employes_Vacances==='object'?(rec.Employes_Vacances.zc_display_value||rec.Employes_Vacances.display_value||rec.Employes_Vacances.Nom||''):rec.Employes_Vacances
+            }
+            if(db&&fn){CONFIG.takenDates.push({start:db,end:fn,employeNom:nm})}
+          });
+          console.log('Total congés:',CONFIG.takenDates.length)
+        }
+        resolve()
+      }).catch(function(e){
+        console.error('Erreur chargement par URL:',e);
+        if(e!=='not_son_tour'&&e!=='emp_not_found'){
+          showError('Erreur de chargement','Une erreur est survenue lors du chargement. Veuillez réessayer.');
+        }
+      });
+      return;
+    }
+    
+    // PAS d'emp_id → afficher erreur (ne PAS charger générique)
+    console.warn('Aucun emp_id dans URL');
+    showError('Lien invalide','Ce lien n\'est pas valide. Veuillez utiliser le lien que vous avez reçu par courriel pour accéder à votre choix de vacances.');
+    reject('no_emp_id');
   })
 }
 
@@ -294,12 +352,12 @@ function hideStatus(){document.getElementById('statusMsg').className='status-msg
 function showApp(){
   document.getElementById('loadingZone').style.display='none';document.getElementById('mainContent').style.display='block';
   var h=document.getElementById('headerMsg');
-  if(IS_ADMIN){h.innerHTML='<span class="emp-name">Vue administration</span> — Conges de tous les groupes (lecture seule)';document.getElementById('selectionBar').style.display='none';setupAdminBar()}
-  else{if(CONFIG.employeNom){h.innerHTML='Bonjour <span class="emp-name">'+CONFIG.employeNom+'</span>! Selectionnez vos dates de vacances (1 a 7 jours ouvrables).'}else{h.textContent='Selectionnez vos dates de vacances (1 a 7 jours ouvrables).'}if(CONFIG.employeGroupe){h.innerHTML+='<br><small style="color:var(--text-muted);">Groupe : '+CONFIG.employeGroupe+'</small>'}}
+  if(IS_ADMIN){h.innerHTML='<span class="emp-name">Vue administration</span> — Congés de tous les groupes (lecture seule)';document.getElementById('selectionBar').style.display='none';setupAdminBar()}
+  else{if(CONFIG.employeNom){h.innerHTML='Bonjour <span class="emp-name">'+CONFIG.employeNom+'</span>! Sélectionnez vos dates de vacances (1 à 7 jours ouvrables).'}else{h.textContent='Sélectionnez vos dates de vacances (1 à 7 jours ouvrables).'}if(CONFIG.employeGroupe){h.innerHTML+='<br><small style="color:var(--text-muted);">Groupe : '+CONFIG.employeGroupe+'</small>'}}
   generateCalendar();updateDisplay()
 }
 
-function initApp(){console.log('Initialisation calendrier vacances...'+(IS_ADMIN?' (MODE ADMIN)':''));loadAllData().then(function(){showApp()}).catch(function(e){console.error('Erreur:',e);showApp()})}
+function initApp(){console.log('Initialisation calendrier vacances...'+(IS_ADMIN?' (MODE ADMIN)':''));loadAllData().then(function(){showApp()}).catch(function(e){console.error('Erreur:',e)})}
 initApp();
 </script>
 </body>
