@@ -369,11 +369,11 @@ window.addEventListener('load', function() {
     var soTo = getQueryParam('so_to');
     var typeParam = getQueryParam('type');
 
-    if (soId) {
-        document.getElementById('searchBox').style.display = 'none';
-        chargerParId(soId);
-    } else if (soNum) {
-        document.getElementById('singleSO').value = soNum;
+    // so_id et so font la meme chose : numero de commande
+    var numCommande = soId || soNum;
+
+    if (numCommande) {
+        document.getElementById('singleSO').value = numCommande;
         chercherSeule();
     } else if (soFrom && soTo) {
         var typeFilter = (typeParam === 'autre') ? 'autre' : 'tiroir';
