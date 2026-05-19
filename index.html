@@ -111,7 +111,10 @@ var urlParams=new URLSearchParams(window.location.search);
 var IS_ADMIN=urlParams.get('mode')==='admin';
 
 var CONFIG={formName:'Choix_Vacances',reportName:'Choix_Vacances_Report',employeReportName:'Employes_Vacances_Report',employeRecordId:null,employeNom:'',employeGroupe:'',
-blockedRanges:[{start:new Date(2026,11,21),end:new Date(2027,0,3)}],
+blockedRanges:[
+  {start:new Date(2026,9,26),end:new Date(2026,9,30)},
+  {start:new Date(2026,11,21),end:new Date(2027,0,3)}
+],
 noVacationRanges:[{start:new Date(2026,5,1),end:new Date(2026,7,31)}],
 holidays:[
   {date:new Date(2026,8,7),label:'Fete du Travail'},
