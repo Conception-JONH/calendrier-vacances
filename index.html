@@ -6,7 +6,7 @@
 <title>Choix de vacances — Moulures JONH</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,500;0,9..40,700;1,9..40,400&family=Fraunces:opsz,wght@9..144,600;9..144,800&display=swap');
-  :root{--bg:#f5f0eb;--surface:#fff;--text:#2c2421;--text-muted:#8a7e78;--accent:#2d6a4f;--accent-light:#d8f3dc;--accent-hover:#1b4332;--blocked:#e07a5f;--blocked-bg:#fce4de;--taken:#e76f51;--taken-bg:#fdd5c8;--overlap:#f0ad4e;--overlap-bg:#fef3cd;--selected:#2d6a4f;--selected-bg:#b7e4c7;--weekend:#eae5e0;--border:#e0d8d2;--shadow:0 2px 12px rgba(44,36,33,0.08);--radius:10px}
+  :root{--bg:#f5f0eb;--surface:#fff;--text:#2c2421;--text-muted:#8a7e78;--accent:#2d6a4f;--accent-light:#d8f3dc;--accent-hover:#1b4332;--blocked:#e07a5f;--blocked-bg:#fce4de;--taken:#e76f51;--taken-bg:#fdd5c8;--overlap:#f0ad4e;--overlap-bg:#fef3cd;--selected:#2d6a4f;--selected-bg:#b7e4c7;--weekend:#eae5e0;--border:#e0d8d2;--shadow:0 2px 12px rgba(44,36,33,0.08);--radius:10px;--skip:#8a7e78;--skip-hover:#5a4f4a}
   *{margin:0;padding:0;box-sizing:border-box}
   body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);padding:24px;min-height:100vh}
   .app-header{text-align:center;margin-bottom:32px}
@@ -39,6 +39,9 @@
   .btn-confirm:disabled{opacity:0.4;cursor:not-allowed}
   .btn-clear{background:transparent;color:var(--text-muted);border:1.5px solid var(--border)}
   .btn-clear:hover{border-color:var(--text-muted);color:var(--text)}
+  .btn-skip{background:transparent;color:var(--skip);border:1.5px solid var(--skip)}
+  .btn-skip:hover:not(:disabled){background:var(--skip);color:#fff}
+  .btn-skip:disabled{opacity:0.4;cursor:not-allowed}
   .admin-bar{background:var(--surface);border:1.5px solid var(--accent);border-radius:var(--radius);padding:14px 24px;margin-bottom:20px;box-shadow:var(--shadow);display:none;flex-wrap:wrap;gap:10px;align-items:center}
   .admin-bar.visible{display:flex}
   .admin-bar label{font-size:0.88rem;font-weight:600;color:var(--accent);margin-right:8px}
@@ -69,11 +72,11 @@
   .day-cell.taken[title]{cursor:help}
   .overlay{display:none;position:fixed;inset:0;background:rgba(44,36,33,0.5);z-index:100;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
   .overlay.visible{display:flex}
-  .modal{background:var(--surface);border-radius:16px;padding:32px;max-width:420px;width:90%;box-shadow:0 20px 60px rgba(44,36,33,0.2);text-align:center}
+  .modal{background:var(--surface);border-radius:16px;padding:32px;max-width:480px;width:90%;box-shadow:0 20px 60px rgba(44,36,33,0.2);text-align:center}
   .modal h2{font-family:'Fraunces',serif;font-weight:800;font-size:1.3rem;color:var(--accent);margin-bottom:12px}
   .modal p{color:var(--text-muted);margin-bottom:24px;line-height:1.6}
   .modal .dates-display{font-family:'Fraunces',serif;font-size:1.2rem;font-weight:600;color:var(--text);margin-bottom:20px}
-  .modal-buttons{display:flex;gap:12px;justify-content:center}
+  .modal-buttons{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
   .status-msg{text-align:center;padding:16px;border-radius:var(--radius);margin-bottom:20px;font-weight:500;display:none}
   .status-msg.success{background:var(--accent-light);color:var(--accent);display:block}
   .status-msg.error{background:var(--blocked-bg);color:var(--blocked);display:block}
@@ -103,12 +106,20 @@
   <div id="adminBar" class="admin-bar"><label>Vue admin — Filtrer par groupe :</label></div>
   <div class="selection-bar" id="selectionBar">
     <div><div class="selection-info" id="selectionInfo">Cliquez sur votre premier jour de vacances</div><div class="selection-dates" id="selectionDates"></div></div>
-    <div class="btn-group"><button class="btn btn-clear" id="btnClear" style="display:none" onclick="clearSelection()">Effacer</button><button class="btn btn-confirm" id="btnConfirm" disabled onclick="showConfirmation()">Confirmer mes vacances</button></div>
+    <div class="btn-group">
+      <button class="btn btn-skip" id="btnSkip" onclick="showSkipConfirmation()">Je passe mon tour</button>
+      <button class="btn btn-clear" id="btnClear" style="display:none" onclick="clearSelection()">Effacer</button>
+      <button class="btn btn-confirm" id="btnConfirm" disabled onclick="showConfirmation()">Confirmer mes vacances</button>
+    </div>
   </div>
   <div class="calendar-grid" id="calendarGrid"></div>
 </div>
+
 <div class="overlay" id="confirmOverlay"><div class="modal"><h2>Confirmer vos vacances?</h2><div class="dates-display" id="modalDates"></div><p id="modalDaysCount"></p><div class="modal-buttons"><button class="btn btn-clear" onclick="hideConfirmation()">Annuler</button><button class="btn btn-confirm" id="btnSubmit" onclick="submitChoice()">Oui, confirmer</button></div></div></div>
-<div class="done-overlay" id="doneOverlay"><div class="done-box"><h2>Vacances confirmées!</h2><div class="done-dates" id="doneDates"></div><p>Votre choix a été enregistré avec succès. Le prochain employé sera notifié automatiquement.<br><br>Vous pouvez fermer cette page.</p></div></div>
+
+<div class="overlay" id="skipOverlay"><div class="modal"><h2>Êtes-vous certain de passer votre tour?</h2><p>Vous ne prenez pas de semaine de vacances supplémentaire pour le moment. Si vous changez d'avis durant l'année, vous pourrez en prendre selon les dates encore disponibles à ce moment-là.</p><div class="modal-buttons"><button class="btn btn-clear" onclick="hideSkipConfirmation()">Annuler</button><button class="btn btn-skip" id="btnSubmitSkip" onclick="submitSkip()">Oui, je passe mon tour</button></div></div></div>
+
+<div class="done-overlay" id="doneOverlay"><div class="done-box"><h2 id="doneTitle">Vacances confirmées!</h2><div class="done-dates" id="doneDates"></div><p id="doneMessage">Votre choix a été enregistré avec succès. Le prochain employé sera notifié automatiquement.<br><br>Vous pouvez fermer cette page.</p></div></div>
 
 <script>
 var urlParams=new URLSearchParams(window.location.search);
@@ -119,8 +130,6 @@ var URL_EMP_GROUPE=urlParams.get('emp_groupe');
 
 var CONFIG={formName:'Choix_Vacances',reportName:'Choix_Vacances_Report',employeReportName:'Employes_Vacances_Report',employeRecordId:null,employeNom:'',employeGroupe:'',
 blockedRanges:[
-  {start:new Date(2026,8,21),end:new Date(2026,9,1)},
-  {start:new Date(2026,9,26),end:new Date(2026,9,30)},
   {start:new Date(2026,11,21),end:new Date(2027,0,3)}
 ],
 noVacationRanges:[{start:new Date(2026,5,1),end:new Date(2026,7,31)}],
@@ -218,18 +227,34 @@ function updateSelectionBar(){var i=document.getElementById('selectionInfo'),d=d
 function showConfirmation(){if(selectedDays.length<CONFIG.minDays)return;document.getElementById('modalDates').textContent=formatDateFr(selectedDays[0])+' → '+formatDateFr(selectedDays[selectedDays.length-1]);document.getElementById('modalDaysCount').textContent=selectedDays.length+' jour(s) ouvrable(s). Cette période sera réservée pour vous.';document.getElementById('confirmOverlay').classList.add('visible')}
 function hideConfirmation(){document.getElementById('confirmOverlay').classList.remove('visible')}
 
+function showSkipConfirmation(){document.getElementById('skipOverlay').classList.add('visible')}
+function hideSkipConfirmation(){document.getElementById('skipOverlay').classList.remove('visible')}
+
 function submitChoice(){
   if(isSubmitting||pageLocked)return;
   if(!CONFIG.employeRecordId){showStatus('Erreur: ID employé manquant.','error');return}
   isSubmitting=true;hideConfirmation();
   var dateDebut=formatDateZoho(selectedDays[0]),dateFin=formatDateZoho(selectedDays[selectedDays.length-1]);
   var sb=document.getElementById('btnSubmit');sb.textContent='Envoi...';sb.disabled=true;
-  var body={data:{Employes_Vacances:CONFIG.employeRecordId,Date_debut:dateDebut,Date_fin:dateFin}};
+  var body={data:{Employes_Vacances:CONFIG.employeRecordId,Date_debut:dateDebut,Date_fin:dateFin,Passe_son_tour:false}};
   console.log('Soumission pour employé ID:',CONFIG.employeRecordId,'Nom:',CONFIG.employeNom);
   console.log('Body:',JSON.stringify(body));
-  apiPost('Choix_Vacances',body).then(function(r){console.log('Reponse:',JSON.stringify(r));if(r.code===3000){pageLocked=true;document.getElementById('doneDates').textContent=formatDateFr(selectedDays[0])+' → '+formatDateFr(selectedDays[selectedDays.length-1]);document.getElementById('doneOverlay').classList.add('visible')}else{showStatus('Erreur: '+(r.message||JSON.stringify(r)),'error');resetSubmitBtn()}}).catch(function(e){console.error('Erreur:',e);showStatus('Erreur réseau: '+e.message,'error');resetSubmitBtn()})}
+  apiPost('Choix_Vacances',body).then(function(r){console.log('Reponse:',JSON.stringify(r));if(r.code===3000){pageLocked=true;document.getElementById('doneTitle').textContent='Vacances confirmées!';document.getElementById('doneDates').textContent=formatDateFr(selectedDays[0])+' → '+formatDateFr(selectedDays[selectedDays.length-1]);document.getElementById('doneMessage').innerHTML='Votre choix a été enregistré avec succès. Le prochain employé sera notifié automatiquement.<br><br>Vous pouvez fermer cette page.';document.getElementById('doneOverlay').classList.add('visible')}else{showStatus('Erreur: '+(r.message||JSON.stringify(r)),'error');resetSubmitBtn()}}).catch(function(e){console.error('Erreur:',e);showStatus('Erreur réseau: '+e.message,'error');resetSubmitBtn()})}
+
+function submitSkip(){
+  if(isSubmitting||pageLocked)return;
+  if(!CONFIG.employeRecordId){showStatus('Erreur: ID employé manquant.','error');return}
+  isSubmitting=true;hideSkipConfirmation();
+  var sb=document.getElementById('btnSubmitSkip');sb.textContent='Envoi...';sb.disabled=true;
+  var today=new Date();
+  var dateAujourdhui=formatDateZoho(today);
+  var body={data:{Employes_Vacances:CONFIG.employeRecordId,Date_debut:dateAujourdhui,Date_fin:dateAujourdhui,Passe_son_tour:true}};
+  console.log('Passe son tour pour:',CONFIG.employeNom);
+  console.log('Body:',JSON.stringify(body));
+  apiPost('Choix_Vacances',body).then(function(r){console.log('Reponse:',JSON.stringify(r));if(r.code===3000){pageLocked=true;document.getElementById('doneTitle').textContent='Tour passé!';document.getElementById('doneDates').textContent='';document.getElementById('doneMessage').innerHTML='Vous avez choisi de passer votre tour. Le prochain employé sera notifié automatiquement.<br><br>Si vous souhaitez prendre des vacances plus tard dans l\'année, vous pourrez en discuter avec votre supérieur.<br><br>Vous pouvez fermer cette page.';document.getElementById('doneOverlay').classList.add('visible')}else{showStatus('Erreur: '+(r.message||JSON.stringify(r)),'error');resetSkipBtn()}}).catch(function(e){console.error('Erreur:',e);showStatus('Erreur réseau: '+e.message,'error');resetSkipBtn()})}
 
 function resetSubmitBtn(){isSubmitting=false;var s=document.getElementById('btnSubmit');s.textContent='Oui, confirmer';s.disabled=false}
+function resetSkipBtn(){isSubmitting=false;var s=document.getElementById('btnSubmitSkip');s.textContent='Oui, je passe mon tour';s.disabled=false}
 
 function setupAdminBar(){
   if(!IS_ADMIN||CONFIG.groups.length===0)return;
@@ -267,6 +292,8 @@ function loadAllData(){
         if(cr&&cr.code===3000&&cr.data){
           var gs={};
           cr.data.forEach(function(rec){
+            // Ignorer les "passe son tour" dans l'affichage admin
+            if(rec.Passe_son_tour===true||rec.Passe_son_tour==='true')return;
             var db=parseZohoDate(rec.Date_debut),fn=parseZohoDate(rec.Date_fin),nm='',grp='';
             if(rec.Employes_Vacances){
               if(typeof rec.Employes_Vacances==='object'){
@@ -290,15 +317,12 @@ function loadAllData(){
       return
     }
     
-    // ============= MODE EMPLOYÉ =============
-    // PRIORITÉ: emp_id dans l'URL (envoyé par le courriel)
     if(URL_EMP_ID){
       console.log('emp_id trouvé dans URL:',URL_EMP_ID);
       apiGet(CONFIG.employeReportName,'(ID == '+URL_EMP_ID+')').then(function(er){
         console.log('Employé par ID URL:',JSON.stringify(er));
         if(er.code===3000&&er.data&&er.data.length>0){
           var e=er.data[0];
-          // Vérification: l'employé doit être à Son_tour
           if(e.Statut!=='Son_tour'){
             console.warn('Employé pas Son_tour, statut actuel:',e.Statut);
             showError('Ce n\'est pas votre tour','Bonjour '+(e.Nom||URL_EMP_NOM||'')+', votre choix a déjà été enregistré ou ce n\'est pas encore votre tour. Veuillez attendre le courriel de notification.');
@@ -321,6 +345,8 @@ function loadAllData(){
         console.log('Congés:',JSON.stringify(cr));
         if(cr&&cr.code===3000&&cr.data){
           cr.data.forEach(function(rec){
+            // Ignorer les "passe son tour" dans l'affichage
+            if(rec.Passe_son_tour===true||rec.Passe_son_tour==='true')return;
             var db=parseZohoDate(rec.Date_debut),fn=parseZohoDate(rec.Date_fin),nm='';
             if(rec.Employes_Vacances){
               nm=typeof rec.Employes_Vacances==='object'?(rec.Employes_Vacances.zc_display_value||rec.Employes_Vacances.display_value||rec.Employes_Vacances.Nom||''):rec.Employes_Vacances
@@ -339,7 +365,6 @@ function loadAllData(){
       return;
     }
     
-    // PAS d'emp_id → afficher erreur (ne PAS charger générique)
     console.warn('Aucun emp_id dans URL');
     showError('Lien invalide','Ce lien n\'est pas valide. Veuillez utiliser le lien que vous avez reçu par courriel pour accéder à votre choix de vacances.');
     reject('no_emp_id');
