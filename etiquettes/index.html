@@ -16,15 +16,15 @@
     --text: #1F2A37;
     --text-muted: #5A6675;
     --text-faint: #8A95A3;
-    --primary: #2D5A3D;
-    --primary-hover: #224830;
-    --primary-soft: #E8F0EA;
-    --secondary: #2C3E50;
-    --secondary-hover: #1F2D3A;
-    --accent: #B8722B;
-    --accent-hover: #9B5F22;
-    --accent-soft: #FBF1E5;
-    --success: #2D5A3D;
+    --primary: #2563EB;
+    --primary-hover: #1D4ED8;
+    --primary-soft: #E5EDFD;
+    --secondary: #1E3A5F;
+    --secondary-hover: #162943;
+    --accent: #0E7490;
+    --accent-hover: #0B5C72;
+    --accent-soft: #E3F1F5;
+    --success: #2563EB;
     --error: #B23B3B;
     --info: #1E5A8A;
     --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
@@ -86,7 +86,7 @@ body {
     min-width: 110px;
     transition: border-color 0.15s, box-shadow 0.15s;
 }
-.input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(45, 90, 61, 0.12); }
+.input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12); }
 .input::placeholder { color: var(--text-faint); }
 
 .btn {
@@ -109,7 +109,7 @@ body {
     font-size: 13px; margin: 0 32px 20px;
     border: 1px solid; display: flex; align-items: center; gap: 8px;
 }
-.status.success { background: #EFF7F1; color: var(--success); border-color: #C8DDCC; }
+.status.success { background: #EAF1FE; color: var(--success); border-color: #C5D7F9; }
 .status.error   { background: #FBEDED; color: var(--error);   border-color: #E8C5C5; }
 .status.info    { background: #EDF3F8; color: var(--info);    border-color: #C7D8E5; }
 
@@ -139,10 +139,10 @@ body {
 }
 .items-table td { padding: 11px 14px; border-bottom: 1px solid var(--border); color: var(--text); vertical-align: top; }
 .items-table tr:last-child td { border-bottom: none; }
-.items-table tr.tiroir-row td { background: rgba(45, 90, 61, 0.025); }
-.items-table tr.tiroir-row:hover td { background: rgba(45, 90, 61, 0.06); }
-.items-table tr.simple-row td { background: rgba(184, 114, 43, 0.03); }
-.items-table tr.simple-row:hover td { background: rgba(184, 114, 43, 0.07); }
+.items-table tr.tiroir-row td { background: rgba(37, 99, 235, 0.025); }
+.items-table tr.tiroir-row:hover td { background: rgba(37, 99, 235, 0.06); }
+.items-table tr.simple-row td { background: rgba(14, 116, 144, 0.03); }
+.items-table tr.simple-row:hover td { background: rgba(14, 116, 144, 0.07); }
 
 .item-name { font-weight: 500; font-size: 13px; line-height: 1.45; }
 .item-dessin {
@@ -156,8 +156,8 @@ body {
     font-size: 10px; font-weight: 600; text-transform: uppercase;
     letter-spacing: 0.06em; line-height: 1.4; border: 1px solid transparent;
 }
-.tag-tiroir { background: var(--primary-soft); color: var(--primary); border-color: rgba(45,90,61,0.18); }
-.tag-simple { background: var(--accent-soft);  color: var(--accent);  border-color: rgba(184,114,43,0.2); }
+.tag-tiroir { background: var(--primary-soft); color: var(--primary); border-color: rgba(37,99,235,0.18); }
+.tag-simple { background: var(--accent-soft);  color: var(--accent);  border-color: rgba(14,116,144,0.2); }
 
 input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--primary); cursor: pointer; }
 
@@ -167,9 +167,9 @@ input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--primary)
     font-size: 13px; text-align: center; font-family: inherit; font-weight: 500;
     background: var(--surface); transition: border-color 0.15s, box-shadow 0.15s;
 }
-.qte-input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px rgba(45, 90, 61, 0.15); }
+.qte-input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15); }
 .qte-input.qte-simple { border-color: var(--accent); }
-.qte-input.qte-simple:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(184,114,43,0.18); }
+.qte-input.qte-simple:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(14,116,144,0.18); }
 .qte-input.qte-simple::placeholder { color: var(--accent); opacity: 0.55; font-weight: 600; }
 
 .action-bar {
@@ -194,7 +194,7 @@ input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--primary)
 }
 .spinner-dark {
     display: inline-block; width: 13px; height: 13px;
-    border: 2px solid rgba(45,90,61,0.18); border-top-color: var(--primary);
+    border: 2px solid rgba(37,99,235,0.18); border-top-color: var(--primary);
     border-radius: 50%; animation: spin 0.7s linear infinite;
     margin-right: 7px; vertical-align: -2px;
 }
