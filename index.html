@@ -142,7 +142,7 @@ holidays:[
 ],
 calendarStart:new Date(2026,8,1),calendarEnd:new Date(2027,4,31),
 takenDates:[],allTakenDates:[],groups:[],adminFilterGroup:null,
-maxDays:7,minDays:1};
+maxDays:6,minDays:1};
 
 var API={proxyUrl:'https://zoho-proxy.conception.workers.dev'};
 function apiGet(rn,cr){var u=API.proxyUrl+'/api/report/'+rn;if(cr)u+='?criteria='+cr;console.log('API GET:',u);return fetch(u).then(function(r){return r.json()})}
@@ -378,7 +378,7 @@ function showApp(){
   document.getElementById('loadingZone').style.display='none';document.getElementById('mainContent').style.display='block';
   var h=document.getElementById('headerMsg');
   if(IS_ADMIN){h.innerHTML='<span class="emp-name">Vue administration</span> — Congés de tous les groupes (lecture seule)';document.getElementById('selectionBar').style.display='none';setupAdminBar()}
-  else{if(CONFIG.employeNom){h.innerHTML='Bonjour <span class="emp-name">'+CONFIG.employeNom+'</span>! Sélectionnez vos dates de vacances (1 à 7 jours ouvrables).'}else{h.textContent='Sélectionnez vos dates de vacances (1 à 7 jours ouvrables).'}if(CONFIG.employeGroupe){h.innerHTML+='<br><small style="color:var(--text-muted);">Groupe : '+CONFIG.employeGroupe+'</small>'}}
+  else{if(CONFIG.employeNom){h.innerHTML='Bonjour <span class="emp-name">'+CONFIG.employeNom+'</span>! Sélectionnez vos dates de vacances (1 à 6 jours ouvrables).'}else{h.textContent='Sélectionnez vos dates de vacances (1 à 6 jours ouvrables).'}if(CONFIG.employeGroupe){h.innerHTML+='<br><small style="color:var(--text-muted);">Groupe : '+CONFIG.employeGroupe+'</small>'}}
   generateCalendar();updateDisplay()
 }
 
