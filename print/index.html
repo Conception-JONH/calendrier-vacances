@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<title>Impression JONH</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    margin: 0;
+    padding: 40px 20px;
+    text-align: center;
+    color: #555;
+    background: #fafafa;
+  }
+  .mini {
+    max-width: 400px;
+    margin: 0 auto;
+  }
+  .so {
+    font-size: 20px;
+    color: #1976d2;
+    font-weight: 600;
+    margin: 10px 0;
+    font-family: "Consolas", monospace;
+  }
+  .info {
+    font-size: 13px;
+    color: #888;
+    margin-top: 15px;
+  }
+  button {
+    background: #5b8c1f;
+    color: white;
+    padding: 8px 20px;
+    border: 0;
+    border-radius: 5px;
+    font-size: 14px;
+    cursor: pointer;
+    margin-top: 10px;
+  }
+  button:hover { background: #4a7318; }
+  .error {
+    color: #d32f2f;
+    margin-top: 15px;
+  }
+</style>
+</head>
+<body>
+<div class="mini">
+  <div id="content-valid" style="display:none;">
+    <div class="so" id="so-display"></div>
+    <p class="info">🖨️ Ouverture Bluebeam...</p>
+    <p class="info">Tu peux fermer cet onglet</p>
+    <button id="btn-retry" style="display:none;">Ouvrir Bluebeam</button>
+  </div>
+  
+  <div id="content-invalid" style="display:none;">
+    <p class="error">⚠️ Aucun numéro de commande fourni</p>
+    <p class="info">Utilise l'URL : <code>?so=165243</code></p>
+  </div>
+</div>
+
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const so = params.get('so');
+  
+  if (so && /^\d+$/.test(so)) {
+    // Numéro valide
+    document.getElementById('content-valid').style.display = 'block';
+    document.getElementById('so-display').textContent = 'SO-' + so;
+    
+    const protocolUrl = 'jonh-print://' + so;
+    
+    // Déclenche le protocole immédiatement
+    window.location.href = protocolUrl;
+    
+    // Tentative de fermeture auto après 2 secondes
+    setTimeout(() => {
+      window.close();
+      // Si la fermeture échoue (sécurité navigateur), afficher le bouton de secours
+      setTimeout(() => {
+        document.getElementById('btn-retry').style.display = 'inline-block';
+      }, 500);
+    }, 2000);
+    
+    // Bouton de secours si ça ne démarre pas tout seul
+    document.getElementById('btn-retry').addEventListener('click', () => {
+      window.location.href = protocolUrl;
+    });
+  } else {
+    // Pas de numéro valide
+    document.getElementById('content-invalid').style.display = 'block';
+  }
+</script>
+</body>
+</html>
