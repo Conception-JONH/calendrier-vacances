@@ -348,6 +348,9 @@ input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--primary)
 
 <script>
 var PROXY = 'https://zoho-proxy.conception.workers.dev';
+// Worker des listes de coupe : fournit l'ordre officiel de la liste Fonds
+// (endpoint /fonds-ordre). C'est LA source de verite du tri des etiquettes tiroirs.
+var TIROIRS_WORKER = 'https://jonh-tiroirs-print.conception.workers.dev';
 var GROUPE_TIROIR = '45';
 var GROUPE_MARQUEUR = '90';
 
@@ -384,6 +387,53 @@ window.addEventListener('load', function() {
     }
 });
 
+// ============================================================
+// ORDRE FONDS — alignement des etiquettes sur la liste de coupe Fonds
+//   On va chercher au worker (/fonds-ordre) l'ordre officiel des tiroirs,
+//   puis on l'attache au "so" sous forme de maps de correspondance. Le tri
+//   reel se fait ensuite dans getSortedLineItems() de facon synchrone.
+//   On passe "numero:id" pour que le worker n'ait qu'1 appel Books.
+//   En cas d'echec (worker indisponible), on garde le tri par dimensions :
+//   l'app continue de fonctionner comme avant.
+// ============================================================
+function attacherOrdreFonds(so) {
+    if (!so || !so.line_items) return Promise.resolve(so);
+
+    // Inutile si la commande ne contient aucun tiroir.
+    var aTiroir = so.line_items.some(function(item) { return !isMarqueur(item) && isTiroir(item); });
+    if (!aTiroir) return Promise.resolve(so);
+
+    var soParam = so.salesorder_number + (so.salesorder_id ? (':' + so.salesorder_id) : '');
+    var url = TIROIRS_WORKER + '/fonds-ordre?so=' + encodeURIComponent(soParam);
+
+    return fetch(url)
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (!data || !data.ordre) return so;
+            var parId = {}, parDesc = {}, parIndex = {};
+            data.ordre.forEach(function(l) {
+                if (l.line_item_id) parId[String(l.line_item_id)] = l.rang;
+                if (l.description) parDesc[l.description] = l.rang;
+                if (typeof l.index === 'number') parIndex[l.index] = l.rang;
+            });
+            so._fondsRang = { parId: parId, parDesc: parDesc, parIndex: parIndex };
+            return so;
+        })
+        .catch(function() { return so; }); // worker injoignable -> repli sur tri par dimensions
+}
+
+// Retrouve le rang Fonds d'une ligne (line_item_id en priorite, puis description,
+// puis position brute). Renvoie null si introuvable.
+function rangFonds(so, item, origIndex) {
+    var maps = so && so._fondsRang;
+    if (!maps) return null;
+    if (item.line_item_id && maps.parId[String(item.line_item_id)] !== undefined) return maps.parId[String(item.line_item_id)];
+    var desc = item.description || '';
+    if (desc && maps.parDesc[desc] !== undefined) return maps.parDesc[desc];
+    if (maps.parIndex[origIndex] !== undefined) return maps.parIndex[origIndex];
+    return null;
+}
+
 function chargerParId(soId) {
     window._currentTypeFilter = null;
     showStatus('info', '<span class="spinner-dark"></span>Chargement de la commande...');
@@ -391,7 +441,10 @@ function chargerParId(soId) {
     .then(function(r) { return r.json(); })
     .then(function(detail) {
         if (!detail.salesorder) throw new Error('Commande introuvable');
-        afficherCommandes([detail.salesorder]);
+        return attacherOrdreFonds(detail.salesorder);
+    })
+    .then(function(so) {
+        afficherCommandes([so]);
     })
     .catch(function(err) { showStatus('error', (err.message || JSON.stringify(err))); });
 }
@@ -469,19 +522,32 @@ function chercherPlage(typeFilter) {
             });
         });
 
+        function fini() { btn.disabled = false; btn.innerHTML = btnLabel; }
+
         if (filteredOrders.length === 0) {
             var msg = typeFilter === 'tiroir'
                 ? 'Aucune commande de tiroirs trouvée dans la plage.'
                 : 'Aucune commande avec articles non-tiroirs trouvée dans la plage.';
             showStatus('error', msg);
-        } else {
-            window._currentTypeFilter = typeFilter;
-            afficherCommandes(filteredOrders);
-            var typeLabel = typeFilter === 'tiroir' ? 'tiroirs' : 'autres articles';
-            showStatus('success', filteredOrders.length + ' commande(s) avec ' + typeLabel + ' trouvée(s) sur ' + validOrders.length + ' commande(s) chargée(s).');
+            fini();
+            return;
         }
-    })
-    .finally(function() { btn.disabled = false; btn.innerHTML = btnLabel; });
+
+        window._currentTypeFilter = typeFilter;
+
+        // Pour les lots de tiroirs, on attache l'ordre Fonds a chaque commande
+        // avant l'affichage (un appel /fonds-ordre par commande, en parallele).
+        var prep = (typeFilter === 'tiroir')
+            ? Promise.all(filteredOrders.map(attacherOrdreFonds))
+            : Promise.resolve(filteredOrders);
+
+        prep.then(function(orders) {
+            afficherCommandes(orders);
+            var typeLabel = typeFilter === 'tiroir' ? 'tiroirs' : 'autres articles';
+            showStatus('success', orders.length + ' commande(s) avec ' + typeLabel + ' trouvée(s) sur ' + validOrders.length + ' commande(s) chargée(s).');
+            fini();
+        });
+    });
 }
 
 function getGroupe(item) {
@@ -529,7 +595,13 @@ function parseTiroirDimensions(desc) {
     return { hauteur: h, largeur: l, profondeur: p };
 }
 
-function getSortedLineItems(line_items) {
+// Trie les lignes pour l'affichage et les etiquettes.
+//   Commandes 100% tiroirs : ordre OFFICIEL = liste de coupe Fonds (rang fourni
+//   par le worker, attache via attacherOrdreFonds). Si le rang n'est pas
+//   disponible (worker injoignable), repli sur le tri par dimensions.
+//   Recoit le "so" complet (et non juste line_items) pour acceder a so._fondsRang.
+function getSortedLineItems(so) {
+    var line_items = so.line_items;
     var indexed = line_items.map(function(item, i) { return { item: item, origIndex: i }; });
     var nonMarqueurs = indexed.filter(function(x) { return !isMarqueur(x.item); });
     var allTiroirs = nonMarqueurs.length > 0 && nonMarqueurs.every(function(x) { return isTiroir(x.item); });
@@ -539,7 +611,22 @@ function getSortedLineItems(line_items) {
     var marqueurs = indexed.filter(function(x) { return isMarqueur(x.item); });
     var tiroirs = indexed.filter(function(x) { return !isMarqueur(x.item); });
 
+    var aOrdreFonds = !!(so && so._fondsRang);
+
     tiroirs.sort(function(a, b) {
+        if (aOrdreFonds) {
+            // Ordre officiel = liste de coupe Fonds (worker /fonds-ordre).
+            var ra = rangFonds(so, a.item, a.origIndex);
+            var rb = rangFonds(so, b.item, b.origIndex);
+            if (ra !== null && rb !== null) {
+                if (ra !== rb) return ra - rb;
+                return a.origIndex - b.origIndex; // egalite -> ordre de commande (stable)
+            }
+            if (ra !== null && rb === null) return -1; // lignes connues d'abord
+            if (ra === null && rb !== null) return 1;
+            // les deux inconnues -> on retombe sur le tri par dimensions ci-dessous
+        }
+        // Repli : tri par dimensions (profondeur, largeur, hauteur croissant).
         var dimA = parseTiroirDimensions(a.item.description || '');
         var dimB = parseTiroirDimensions(b.item.description || '');
         if (!dimA && !dimB) return 0;
@@ -592,7 +679,7 @@ function buildOrderCard(so, orderIdx) {
         '<th style="width:100px;">Qté étiq.</th>' +
         '</tr></thead><tbody>';
 
-    var sortedItems = getSortedLineItems(so.line_items);
+    var sortedItems = getSortedLineItems(so);
     var typeFilter = window._currentTypeFilter;
 
     sortedItems.forEach(function(entry) {
@@ -685,7 +772,7 @@ function buildLabelsForOrder(so, orderIdx) {
     });
 
     var labelsHtml = '', labelCount = 0;
-    var sortedItems = getSortedLineItems(so.line_items);
+    var sortedItems = getSortedLineItems(so);
     var typeFilter = window._currentTypeFilter;
 
     sortedItems.forEach(function(entry) {
