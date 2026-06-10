@@ -816,9 +816,13 @@ function buildLabelsForOrder(so, orderIdx) {
         var ctx = contextByLine[lineIdx] || { refClient: '', sousPO: '' };
         var parsed = parseDescription(desc);
 
+        // Detection des options. Bilingue pour le vernis : VERNIS/VERNI (FR)
+        // ET VARNISHED/VARNISH (EN). Comme hasOption utilise des limites de mots
+        // (\b), il faut lister les formes completes : "varnish" seul ne matche
+        // PAS "VARNISHED", et "verni" seul ne matche PAS "VERNIS".
         var logo   = hasOption(desc, 'logo')   ? 'Oui' : 'Non';
         var clips  = (hasOption(desc, 'clip')  || hasOption(desc, 'clips'))  ? 'Oui' : 'Non';
-        var vernis = hasOption(desc, 'vernis') ? 'Oui' : 'Non';
+        var vernis = (hasOption(desc, 'vernis') || hasOption(desc, 'verni') || hasOption(desc, 'varnished') || hasOption(desc, 'varnish')) ? 'Oui' : 'Non';
 
         for (var n = 0; n < nbEtiq; n++) {
             labelCount++;
