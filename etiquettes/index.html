@@ -354,6 +354,17 @@ var TIROIRS_WORKER = 'https://jonh-tiroirs-print.conception.workers.dev';
 var GROUPE_TIROIR = '45';
 var GROUPE_MARQUEUR = '90';
 
+// ============================================================
+// AFFICHAGE — TIROIRS SEULEMENT
+//   "Oui" : lors du chargement d'une commande seule, seules les lignes de
+//   tiroir (groupe 45) sont affichees, comptees et imprimees. Les lignes
+//   "Autre" (frais d'ajustement, etc.) sont completement masquees.
+//   Le bouton "Charger lot autres" continue d'afficher les autres lignes
+//   pour l'employe a l'expedition.
+//   Mettre "Non" pour revenir au comportement d'origine (tout afficher).
+// ============================================================
+var TIROIRS_SEULEMENT = 'Oui';
+
 function hasOption(desc, motCle) {
     if (!desc) return false;
     var re = new RegExp('\\b' + motCle + '\\b', 'i');
@@ -573,6 +584,28 @@ function isMarqueur(item) {
 
 function isTiroir(item) { return getGroupe(item) === GROUPE_TIROIR; }
 
+// Decide si une ligne doit etre affichee / comptee / etiquetee (hors marqueurs).
+//   - Plage explicite "tiroir" -> uniquement les tiroirs
+//   - Plage explicite "autre"  -> uniquement les non-tiroirs
+//   - Sinon (commande seule) : si TIROIRS_SEULEMENT = "Oui", uniquement les tiroirs
+function ligneRetenue(item) {
+    if (isMarqueur(item)) return false;
+    var tiroir = isTiroir(item);
+    var typeFilter = window._currentTypeFilter;
+    if (typeFilter === 'tiroir') return tiroir;
+    if (typeFilter === 'autre')  return !tiroir;
+    if (TIROIRS_SEULEMENT === 'Oui') return tiroir;
+    return true;
+}
+
+// Compte les items (somme des quantites) des lignes retenues seulement.
+function compterItems(so) {
+    return so.line_items.reduce(function(total, item) {
+        if (!ligneRetenue(item)) return total;
+        return total + (parseInt(item.quantity) || 0);
+    }, 0);
+}
+
 function fractionToDecimal(str) {
     if (!str) return NaN;
     str = String(str).trim();
@@ -596,15 +629,18 @@ function parseTiroirDimensions(desc) {
 }
 
 // Trie les lignes pour l'affichage et les etiquettes.
-//   Commandes 100% tiroirs : ordre OFFICIEL = liste de coupe Fonds (rang fourni
-//   par le worker, attache via attacherOrdreFonds). Si le rang n'est pas
-//   disponible (worker injoignable), repli sur le tri par dimensions.
+//   Commandes 100% tiroirs (parmi les lignes retenues) : ordre OFFICIEL =
+//   liste de coupe Fonds (rang fourni par le worker, attache via
+//   attacherOrdreFonds). Si le rang n'est pas disponible (worker injoignable),
+//   repli sur le tri par dimensions.
+//   On evalue "allTiroirs" sur les lignes RETENUES seulement, donc une simple
+//   ligne de frais d'ajustement masquee ne desactive plus le tri Fonds.
 //   Recoit le "so" complet (et non juste line_items) pour acceder a so._fondsRang.
 function getSortedLineItems(so) {
     var line_items = so.line_items;
     var indexed = line_items.map(function(item, i) { return { item: item, origIndex: i }; });
-    var nonMarqueurs = indexed.filter(function(x) { return !isMarqueur(x.item); });
-    var allTiroirs = nonMarqueurs.length > 0 && nonMarqueurs.every(function(x) { return isTiroir(x.item); });
+    var retenues = indexed.filter(function(x) { return ligneRetenue(x.item); });
+    var allTiroirs = retenues.length > 0 && retenues.every(function(x) { return isTiroir(x.item); });
 
     if (!allTiroirs) return indexed;
 
@@ -661,10 +697,7 @@ function buildOrderCard(so, orderIdx) {
     card.className = 'order-card';
     card.dataset.orderIdx = orderIdx;
 
-    var nbItems = so.line_items.reduce(function(total, item) {
-        if (isMarqueur(item)) return total;
-        return total + (parseInt(item.quantity) || 0);
-    }, 0);
+    var nbItems = compterItems(so);
 
     var header = '<div class="order-card-header">' +
         '<div><div class="order-num">Commande ' + so.salesorder_number + '</div>' +
@@ -680,16 +713,12 @@ function buildOrderCard(so, orderIdx) {
         '</tr></thead><tbody>';
 
     var sortedItems = getSortedLineItems(so);
-    var typeFilter = window._currentTypeFilter;
 
     sortedItems.forEach(function(entry) {
         var item = entry.item;
         var lineIdx = entry.origIndex;
-        if (isMarqueur(item)) return;
+        if (!ligneRetenue(item)) return;
         var tiroir = isTiroir(item);
-
-        if (typeFilter === 'tiroir' && !tiroir) return;
-        if (typeFilter === 'autre' && tiroir) return;
 
         var desc = item.description || '';
         var qty = parseInt(item.quantity) || 1;
@@ -752,10 +781,7 @@ function escapeHtml(s) {
 }
 
 function buildLabelsForOrder(so, orderIdx) {
-    var totalItems = so.line_items.reduce(function(total, item) {
-        if (isMarqueur(item)) return total;
-        return total + (parseInt(item.quantity) || 0);
-    }, 0);
+    var totalItems = compterItems(so);
 
     var contextByLine = {};
     var refClientCourant = '', sousPOCourant = '';
@@ -773,16 +799,11 @@ function buildLabelsForOrder(so, orderIdx) {
 
     var labelsHtml = '', labelCount = 0;
     var sortedItems = getSortedLineItems(so);
-    var typeFilter = window._currentTypeFilter;
 
     sortedItems.forEach(function(entry) {
         var item = entry.item;
         var lineIdx = entry.origIndex;
-        if (isMarqueur(item)) return;
-
-        var tiroir = isTiroir(item);
-        if (typeFilter === 'tiroir' && !tiroir) return;
-        if (typeFilter === 'autre' && tiroir) return;
+        if (!ligneRetenue(item)) return;
 
         var checkbox = document.querySelector('.item-check[data-order="' + orderIdx + '"][data-line="' + lineIdx + '"]');
         if (!checkbox || !checkbox.checked) return;
