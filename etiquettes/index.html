@@ -356,14 +356,18 @@ var GROUPE_MARQUEUR = '90';
 
 // ============================================================
 // AFFICHAGE — TIROIRS SEULEMENT
-//   "Oui" : lors du chargement d'une commande seule, seules les lignes de
-//   tiroir (groupe 45) sont affichees, comptees et imprimees. Les lignes
-//   "Autre" (frais d'ajustement, etc.) sont completement masquees.
+//   "Oui" : lors du chargement d'une commande seule, seules les VRAIS tiroirs
+//   sont affiches, comptes et imprimes. Un vrai tiroir = ligne du groupe 45
+//   dont le code commence par PREFIXE_TIROIR (ex. 4551TC05, 453TC18).
+//   Sont donc masquees : les lignes "Autre" (frais d'ajustement, etc.) ET les
+//   lignes du groupe 45 sans code de tiroir (ex. "LOGO DU CLIENT GRAVE").
 //   Le bouton "Charger lot autres" continue d'afficher les autres lignes
 //   pour l'employe a l'expedition.
 //   Mettre "Non" pour revenir au comportement d'origine (tout afficher).
 // ============================================================
 var TIROIRS_SEULEMENT = 'Oui';
+// Prefixe du code d'un vrai tiroir physique (les SKU JONH commencent par 45).
+var PREFIXE_TIROIR = '45';
 
 function hasOption(desc, motCle) {
     if (!desc) return false;
@@ -410,8 +414,8 @@ window.addEventListener('load', function() {
 function attacherOrdreFonds(so) {
     if (!so || !so.line_items) return Promise.resolve(so);
 
-    // Inutile si la commande ne contient aucun tiroir.
-    var aTiroir = so.line_items.some(function(item) { return !isMarqueur(item) && isTiroir(item); });
+    // Inutile si la commande ne contient aucun vrai tiroir.
+    var aTiroir = so.line_items.some(function(item) { return estVraiTiroir(item); });
     if (!aTiroir) return Promise.resolve(so);
 
     var soParam = so.salesorder_number + (so.salesorder_id ? (':' + so.salesorder_id) : '');
@@ -528,7 +532,7 @@ function chercherPlage(typeFilter) {
         var filteredOrders = validOrders.filter(function(so) {
             return so.line_items.some(function(item) {
                 if (isMarqueur(item)) return false;
-                if (typeFilter === 'tiroir') return isTiroir(item);
+                if (typeFilter === 'tiroir') return estVraiTiroir(item);
                 return !isTiroir(item);
             });
         });
@@ -584,17 +588,25 @@ function isMarqueur(item) {
 
 function isTiroir(item) { return getGroupe(item) === GROUPE_TIROIR; }
 
+// Vrai tiroir physique a etiqueter = ligne du groupe 45 dont le code commence
+// par PREFIXE_TIROIR (ex. 4551TC05, 453TC18). Les lignes du groupe 45 sans code
+// (ex. "LOGO DU CLIENT GRAVE") sont descriptives, pas des tiroirs : on les exclut.
+function estVraiTiroir(item) {
+    if (!isTiroir(item)) return false;
+    var desc = (item.description || '').trim();
+    return desc.indexOf(PREFIXE_TIROIR) === 0;
+}
+
 // Decide si une ligne doit etre affichee / comptee / etiquetee (hors marqueurs).
-//   - Plage explicite "tiroir" -> uniquement les tiroirs
-//   - Plage explicite "autre"  -> uniquement les non-tiroirs
-//   - Sinon (commande seule) : si TIROIRS_SEULEMENT = "Oui", uniquement les tiroirs
+//   - Plage explicite "tiroir" -> uniquement les VRAIS tiroirs (code commence par 45)
+//   - Plage explicite "autre"  -> uniquement les non-tiroirs (exclut groupe 45, donc logo)
+//   - Sinon (commande seule) : si TIROIRS_SEULEMENT = "Oui", uniquement les vrais tiroirs
 function ligneRetenue(item) {
     if (isMarqueur(item)) return false;
-    var tiroir = isTiroir(item);
     var typeFilter = window._currentTypeFilter;
-    if (typeFilter === 'tiroir') return tiroir;
-    if (typeFilter === 'autre')  return !tiroir;
-    if (TIROIRS_SEULEMENT === 'Oui') return tiroir;
+    if (typeFilter === 'tiroir') return estVraiTiroir(item);
+    if (typeFilter === 'autre')  return !isTiroir(item);
+    if (TIROIRS_SEULEMENT === 'Oui') return estVraiTiroir(item);
     return true;
 }
 
