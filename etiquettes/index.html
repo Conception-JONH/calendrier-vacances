@@ -366,8 +366,11 @@ var GROUPE_MARQUEUR = '90';
 //   Mettre "Non" pour revenir au comportement d'origine (tout afficher).
 // ============================================================
 var TIROIRS_SEULEMENT = 'Oui';
-// Prefixe du code d'un vrai tiroir physique (les SKU JONH commencent par 45).
-var PREFIXE_TIROIR = '45';
+// Un vrai tiroir physique a un code "chiffres + lettres + chiffres" au debut
+// (ex. 4551TC05, 453TC18). Les lignes de finition/option du groupe 45 n'ont pas
+// ce numero de taille final (ex. "45VT - =VERNIS EAU =") ou n'ont pas de code du
+// tout (ex. "LOGO DU CLIENT GRAVE") : elles sont donc exclues.
+var RE_CODE_TIROIR = /^\s*\d+[A-Z]+\d+/i;
 
 function hasOption(desc, motCle) {
     if (!desc) return false;
@@ -588,13 +591,17 @@ function isMarqueur(item) {
 
 function isTiroir(item) { return getGroupe(item) === GROUPE_TIROIR; }
 
-// Vrai tiroir physique a etiqueter = ligne du groupe 45 dont le code commence
-// par PREFIXE_TIROIR (ex. 4551TC05, 453TC18). Les lignes du groupe 45 sans code
-// (ex. "LOGO DU CLIENT GRAVE") sont descriptives, pas des tiroirs : on les exclut.
+// Vrai tiroir physique a etiqueter = ligne du groupe 45 qui possede un VRAI code
+// de tiroir au debut (chiffres + lettres + chiffres, ex. 4551TC05, 453TC18) OU,
+// par securite, des dimensions de tiroir ( = H X L L X P P ). Les autres lignes
+// du groupe 45 (finition "45VT - =VERNIS EAU =", note "LOGO DU CLIENT GRAVE")
+// ne generent pas d'etiquette.
 function estVraiTiroir(item) {
     if (!isTiroir(item)) return false;
-    var desc = (item.description || '').trim();
-    return desc.indexOf(PREFIXE_TIROIR) === 0;
+    var desc = item.description || '';
+    if (RE_CODE_TIROIR.test(desc)) return true;
+    if (parseTiroirDimensions(desc)) return true;
+    return false;
 }
 
 // Decide si une ligne doit etre affichee / comptee / etiquetee (hors marqueurs).
